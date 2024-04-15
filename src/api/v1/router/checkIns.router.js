@@ -8,4 +8,3 @@ router.post("/inDetails", upload.single("checkInImage"), checkInFxn);
 router.post("/outDetails",upload.single('checkOutImage'),checkOutFxn)
 
 module.exports = router;
-1234567.89
