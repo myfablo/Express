@@ -63,7 +63,7 @@ const getCheckOutRequest = async (riderId, checkInOutId, checkOutKiloMeters, out
     const checkOutImage = await uploadImage(outLocalFilePath);
    // console.log(riderId, checkInOutId, checkOutKiloMeters, outLocalFilePath)
 
-   const data = await checkInsModel.findById({ 'checkIn.checkInId': checkInOutId });
+   const data = await checkInsModel.findOne({ 'checkIn.checkInId': checkInOutId });
    // const data = await checkInsModel.findById(checkInOutId);
 
     //const checkInData = data.checkIn || {};
@@ -75,14 +75,21 @@ const getCheckOutRequest = async (riderId, checkInOutId, checkOutKiloMeters, out
     if (data.checkIn.checkInId.toString() !== checkInOutId) {
       return { status: false, message: "Invalid riderId or checkInOutId provided" };
     }
-     console.log(checkInData.kiloMeters);
+
+    if(data.checkIn.checkInKiloMeters > checkOutKiloMeters){
+      return {status :false , message: "Please enter checkOutKiloMeters greater than checkInKiloMeters!!"}
+    }
+    if(data.checkIn.checkInKiloMeters == checkOutKiloMeters){
+      return {status :false , message: "You have travelled for zero distance today!!"}
+    }
+     //console.log(checkInData.kiloMeters);
      const startDst = data.checkIn?.kiloMeters || 0;
      
     console.log(startDst)
     const endDst = checkOutKiloMeters;
 
-    if (isNaN(startDst) || isNaN(endDst)) {
-      return { status: false, message: "Invalid values for startDst or endDst" };
+    if (isNaN(data.checkIn.checkInKiloMeters) || isNaN(checkOutKiloMeters)) {
+      return { status: false, message: "Invalid values for checkIn and checkOut Kilometers!" };
     }
 
     if (endDst < startDst) {
@@ -91,7 +98,7 @@ const getCheckOutRequest = async (riderId, checkInOutId, checkOutKiloMeters, out
       return { status: false, message: "You traveled Zero(0) kilometers today!" };
     }
 
-    let distance = endDst - startDst;
+    let distance = (checkOutKiloMeters) - (data.checkIn.checkInKiloMeters);
 
     data.checkOut = {
       checkOutTime: checkOutTime,

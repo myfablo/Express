@@ -31,6 +31,9 @@ const checkInFxn = async (req, res) => {
     if (!checkInKiloMeters) {
       return badRequest(res, "Check-In kiloMeters value is required!");
     }
+    if(isNaN(checkInKiloMeters)){
+      return badRequest(res,"KiloMeters must be a Number!")
+    }
 
     const { status, message, data } = await getCheckInRequest(
       riderId,
@@ -59,6 +62,9 @@ const checkOutFxn = async (req, res) => {
     }
     if (!checkOutKiloMeters) {
       return badRequest(res, "checkOut KiloMeters is required!");
+    }
+    if(isNaN(checkOutKiloMeters)){
+      return badRequest(res,"KiloMeters must be a Number!")
     }
 
     
