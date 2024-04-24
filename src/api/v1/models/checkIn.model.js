@@ -49,30 +49,33 @@ const checkInsModel = mongoose.model("checkins", checkInSchema); // Corrected mo
 module.exports = { checkInsModel };
 
 
-// // Middleware to check if rider has already checked in on the current day
-// checkInSchema.pre("save", async function (next) {
-//   try {
-//     const time = getTimeInIST(); 
-//     const timeMoment = moment.utc(time);
-//     const riderId = this.riderId;
-//     const startOfDay = timeMoment.startOf("day").toDate();
-//     const endOfDay = timeMoment.endOf("day").toDate();
+// Middleware to check if rider has already checked in on the current day
+checkInSchema.pre("save", async function (next) {
+  try {
+    const time = getTimeInIST(); 
 
+    const riderId = this.riderId;
+            // Get the start of the day in Indian Standard Time (IST)
+         const startOfDayIST = moment(time).startOf("day");
 
- // Check if the rider has already checked in on the current day
-//     const existingCheckIn = await this.constructor.findOne({
-//       riderId,
-//       "checkIn.checkInTime": { $gte: startOfDay, $lt: endOfDay }, // Adjusted path to 'checkIn.checkInTime'
-//     });
+          //Get the end of the day in Indian Standard Time (IST)
+          const endOfDayIST = moment(time).endOf("day");
+         // console.log(startOfDayIST.format(),endOfDayIST.format())
 
-//     if (existingCheckIn) {
-//       const error = new Error("Rider has already checked in today.");
-//       return next(error);
-//     }
+// Check if the rider has already checked in on the current day
+    const existingCheckIn = await this.constructor.findOne({
+      riderId,
+      "checkIn.checkInTime": { $gte: startOfDayIST, $lt: endOfDayIST }, // Adjusted path to 'checkIn.checkInTime'
+    });
 
-//     next(); // Continue with the save operation if there's no existing check-in for the rider on the current day
-//   } catch (error) {
-//     console.log(error);
-//     next(error); // Pass any errors to the next middleware
-//   }
-// });
+    if (existingCheckIn) {
+      const error = new Error("Rider has already checked in today.");
+      return next(error);
+    }
+
+    next(); // Continue with the save operation if there's no existing check-in for the rider on the current day
+  } catch (error) {
+    console.log(error);
+    next(error); // Pass any errors to the next middleware 
+  }
+});

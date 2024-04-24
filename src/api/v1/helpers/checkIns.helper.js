@@ -1,4 +1,5 @@
 const { badRequest, unknownError } = require("./response.helper.js");
+const moment = require("moment-timezone");
 const {checkInsModel} = require("../models/checkIn.model.js");
 const mongoose = require("mongoose");
 const {
@@ -13,53 +14,67 @@ const {
 //request from controller to checkIN
 const getCheckInRequest = async (riderId, checkInKiloMeters, inLocalFilePath) => {
   try {
-    //take id and time from the separate created function!!
+    // Take id and time from the separate created function
     const checkInId = await generateRandomBytes(8);
     const checkInTime = getTimeInIST();
 
-    //now take image from the separate created function!!
+    // // Get the start and end of the day in Indian Standard Time (IST)
+    // const startOfDayIST = moment(checkInTime).startOf("day");
+    // const endOfDayIST = moment(checkInTime).endOf("day");
+
+    // // Check if the rider has already checked in on the current day
+    // const existingCheckIn = await checkInsModel.findOne({
+    //   riderId
+      
+    // });
+    // console.log(existingCheckIn)
+
+    // if (existingCheckIn) {
+    //   return { status: false, message: "Rider has already checked in today.", existingCheckIn };
+    // }
+
+    // Take image from the separate created function
     const checkInImage = await uploadImage(inLocalFilePath);
 
-
-// Assuming riderId, checkInId, checkInTime, checkInImage, and checkInkiloMeters are defined elsewhere
-const data = {
-  riderId: riderId,
-  checkIn: {
-    checkInId: checkInId,
-    checkInTime: checkInTime,
-    checkInImage: checkInImage.url,
-    checkInKiloMeters: checkInKiloMeters,
-  },
-  distance: checkInKiloMeters, // Assuming you want to set distance to checkInKiloMeters
-};
-
-const checkInData = await checkInsModel(data);
-
-
-checkInData.save()
-console.log(checkInData)
-
-if(!checkInData){
-  return { status: false, message: "Failed to save the CheckIn Data!!",data:error }
-}
-  
-return {
-      status: true,
-      message: "Check-In Data Saved Successfully!!",
-      data :checkInData,
+    // Construct data object for check-in
+    const data = {
+      riderId: riderId,
+      checkIn: {
+        checkInId: checkInId,
+        checkInTime: checkInTime.format("MMMM Do YYYY, h:mm:ss a"),
+        checkInImage: checkInImage.url,
+        checkInKiloMeters: checkInKiloMeters,
+      },
+      distance: checkInKiloMeters, // Assuming you want to set distance to checkInKiloMeters
     };
 
-  
+    // Save the check-in data
+    const checkInData = await checkInsModel.create(data);
+
+    if (!checkInData) {
+      return { status: false, message: "Failed to save the Check-In Data!!", data: error };
+    }
+
+    return {
+      status: true,
+      message: "Check-In Data Saved Successfully!!",
+      data: checkInData,
+    };
   } catch (error) {
     console.log(error);
-    return { status: false, message: error.message, data:error };
+    return { status: false, message: error.message, data: error };
   }
 };
+
 
 //fxn to help the checkout controller
 const getCheckOutRequest = async (riderId, checkInOutId, checkOutKiloMeters, outLocalFilePath) => {
   try {
     const checkOutTime = getTimeInIST();
+    console.log(checkOutTime)
+
+
+
     const checkOutImage = await uploadImage(outLocalFilePath);
    // console.log(riderId, checkInOutId, checkOutKiloMeters, outLocalFilePath)
 
@@ -101,7 +116,7 @@ const getCheckOutRequest = async (riderId, checkInOutId, checkOutKiloMeters, out
     let distance = (checkOutKiloMeters) - (data.checkIn.checkInKiloMeters);
 
     data.checkOut = {
-      checkOutTime: checkOutTime,
+      checkOutTime: checkOutTime.format("MMMM Do YYYY, h:mm:ss a"),
       checkOutImage: checkOutImage.url,
       checkOutKilometers: checkOutKiloMeters,
     };

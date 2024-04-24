@@ -4,6 +4,7 @@
 const moment = require("moment-timezone");
 const crypto = require("crypto");
 const uploadOnCloudinary = require("./cloudinary.helper.js");
+const {badRequest} = require("./response.helper.js")
 
 
 //for generating various ids etc.
@@ -29,12 +30,13 @@ const generateRandomBytes = async (length) => {
     try {
       //now we have to take time in ist format
       let time;
-      time = moment().tz("Asia/kolkata").format("MMMM Do YYYY, h:mm:ss a");
+      time = moment().tz("Asia/kolkata")//.format("MMMM Do YYYY, h:mm:ss a");
       // console.log(time)
   
       if (!time) {
         return badRequest(res, "checkInTime is not defined");
       }
+
       return time;
     } catch (error) {
       console.log(error);
