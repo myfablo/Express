@@ -1,4 +1,3 @@
-
 const {
   badRequest,
   unknownError,
@@ -11,7 +10,7 @@ const {
 } = require("../helpers/checkIns.helper.js");
 
 //check-In controller function
-const checkInFxn = async (req, res) => {
+const addCheckIn = async (req, res) => {
   try {
     //let checkInId,riderId;
     const { riderId, checkInKiloMeters } = req.body;
@@ -31,8 +30,8 @@ const checkInFxn = async (req, res) => {
     if (!checkInKiloMeters) {
       return badRequest(res, "Check-In kiloMeters value is required!");
     }
-    if(isNaN(checkInKiloMeters)){
-      return badRequest(res,"KiloMeters must be a Number!")
+    if (isNaN(checkInKiloMeters)) {
+      return badRequest(res, "KiloMeters must be a Number!");
     }
 
     const { status, message, data } = await getCheckInRequest(
@@ -50,7 +49,7 @@ const checkInFxn = async (req, res) => {
 };
 
 //check Out controller  function
-const checkOutFxn = async (req, res) => {
+const addCheckOut = async (req, res) => {
   try {
     const { riderId, checkInOutId, checkOutKiloMeters } = req.body;
 
@@ -63,11 +62,10 @@ const checkOutFxn = async (req, res) => {
     if (!checkOutKiloMeters) {
       return badRequest(res, "checkOut KiloMeters is required!");
     }
-    if(isNaN(checkOutKiloMeters)){
-      return badRequest(res,"KiloMeters must be a Number!")
+    if (isNaN(checkOutKiloMeters)) {
+      return badRequest(res, "KiloMeters must be a Number!");
     }
 
-    
     //taking file from request
     const outLocalFilePath = req.file?.path;
     console.log(outLocalFilePath);
@@ -90,4 +88,4 @@ const checkOutFxn = async (req, res) => {
   }
 };
 
-module.exports = { checkInFxn, checkOutFxn };
+module.exports = { addCheckIn, addCheckOut };
