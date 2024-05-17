@@ -7,6 +7,7 @@ const {
 const {
   getCheckInRequest,
   getCheckOutRequest,
+  updateCheckInRequest,
 } = require("../helpers/checkIns.helper.js");
 
 //check-In controller function
@@ -88,4 +89,29 @@ const addCheckOut = async (req, res) => {
   }
 };
 
-module.exports = { addCheckIn, addCheckOut };
+const updateCheckIn = async (req, res) => {
+  try {
+    const { riderId, checkInKiloMeters } = req.body;
+    if (!riderId || !checkInKiloMeters) {
+      return badRequest(res, "riderId and checkInKilomete both are required!!");
+    }
+
+    if (isNaN(checkInKiloMeters)) {
+      return badRequest(res, "KiloMeters must be a Number!");
+    }
+
+    const inLocalFilePath = req.file?.path[0];
+    console.log(inLocalFilePath);
+    if (!inLocalFilePath) {
+      return badRequest(res, "check-In image is required!!");
+    }
+
+    const { status, message, data } = updateCheckInRequest(
+      riderId,
+      checkInKiloMeters,
+      inLocalFilePath
+    );
+  } catch (error) {}
+};
+
+module.exports = { addCheckIn, addCheckOut, updateCheckIn };

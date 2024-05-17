@@ -167,4 +167,5 @@ const getCheckOutRequest = async (
     return { status: false, message: error.message, error: error };
   }
 };
+
 module.exports = { getCheckInRequest, getCheckOutRequest };
