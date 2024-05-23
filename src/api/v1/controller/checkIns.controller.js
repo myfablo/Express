@@ -170,10 +170,15 @@ const updateCheckOut = async (req, res) => {
 //function to delete the checkIn
 const deleteCheckIn = async (req, res) => {
   try {
-    const { checkInId, riderId } = req.body;
+    const { riderId, checkInId } = req.body;
+    console.log(riderId);
+    console.log(checkInId);
 
-    if (!riderId || !checkInId) {
-      return badRequest(res, "riderId and checkInId both are required!!");
+    if (!riderId) {
+      return badRequest(res, "riderId is required!!");
+    }
+    if (!checkInId) {
+      return badRequest(res, "checkInId is required!!");
     }
 
     const { status, message, data } = await deleteCheckInRequest(

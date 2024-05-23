@@ -6,6 +6,6 @@ const connectExpressDB = require("../v1/config/mongoose.js");
 connectExpressDB();
 
 const checkInRoute = require("./router/checkIns.router.js");
-router.use("/checkIn", checkInRoute);
+router.use("/checkIns", checkInRoute);
 
 module.exports = router;
