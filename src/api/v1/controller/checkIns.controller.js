@@ -90,29 +90,41 @@ const addCheckOut = async (req, res) => {
   }
 };
 
+//function to update the checkIn
 const updateCheckIn = async (req, res) => {
   try {
-    const { riderId, checkInKiloMeters } = req.body;
-    if (!riderId || !checkInKiloMeters) {
-      return badRequest(res, "riderId and checkInKilomete both are required!!");
+    const { riderId, checkInKiloMeters, checkInId } = req.body;
+    if (!riderId || !checkInId) {
+      return badRequest(res, "riderId and checkInId both are required!!");
     }
 
-    if (isNaN(checkInKiloMeters)) {
-      return badRequest(res, "KiloMeters must be a Number!");
+    if (checkInKiloMeters) {
+      if (isNaN(checkInKiloMeters)) {
+        return badRequest(res, "KiloMeters must be a Number!");
+      }
     }
 
-    const inLocalFilePath = req.file?.path[0];
+    const inLocalFilePath = req.file?.path; // Corrected accessing file path
     console.log(inLocalFilePath);
-    if (!inLocalFilePath) {
-      return badRequest(res, "check-In image is required!!");
-    }
+    // if (!inLocalFilePath) {
+    //   return badRequest(res, "check-In image is required!!");
+    // }
 
-    const { status, message, data } = updateCheckInRequest(
+    const { status, message, data } = await updateCheckInRequest(
       riderId,
       checkInKiloMeters,
-      inLocalFilePath
+      inLocalFilePath,
+      checkInId
     );
-  } catch (error) {}
+
+    // Handle response based on status
+    return status
+      ? success(res, message, data)
+      : badRequest(res, message, data);
+  } catch (error) {
+    console.error("Error updating check-in document:", error);
+    return unknownError(res, error);
+  }
 };
 
 module.exports = { addCheckIn, addCheckOut, updateCheckIn };

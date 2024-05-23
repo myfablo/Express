@@ -203,4 +203,81 @@ const getCheckOutRequest = async (
     return { status: false, message: error.message, error: error };
   }
 };
-module.exports = { getCheckInRequest, getCheckOutRequest };
+
+//request from controller to update checkIn
+const updateCheckInRequest = async (
+  riderId,
+  checkInKiloMeters,
+  inLocalFilePath,
+  checkInId
+) => {
+  try {
+    const Time = getTimeInIST();
+    const updationTime = Time.split(",")[0];
+
+    const data = await checkInsModel.findOne({
+      riderId: riderId,
+      "checkIn.checkInId": checkInId,
+    });
+
+    console.log(data);
+
+    if (!data) {
+      return {
+        status: false,
+        message: "Check-In Data Not Found to Update it!",
+      };
+    }
+
+    if (data.riderId !== riderId) {
+      return {
+        status: false,
+        message: "You are not permitted to update the data!",
+      };
+    }
+
+    const checkedInTime = data.checkIn.checkInTime.split(",")[0].toString();
+    if (checkedInTime !== updationTime) {
+      return {
+        status: false,
+        message: "You can only update the data of the same day!",
+      };
+    }
+
+    if (inLocalFilePath !== data.checkIn.checkInImage) {
+      const updatedCheckInImage = await uploadImage(inLocalFilePath);
+      data.checkIn.checkInImage = updatedCheckInImage.url;
+    } else {
+      return {
+        status: false,
+        message:
+          "Image is same as the existing image!, please provide a different image",
+      };
+    }
+
+    if (checkInKiloMeters !== data.checkIn.checkInKiloMeters) {
+      data.checkIn.checkInKiloMeters = checkInKiloMeters;
+      data.distance = checkInKiloMeters;
+    } else {
+      return {
+        status: false,
+        message: "checkInKiloMeters is same as existing uploaded KiloMeters!",
+      };
+    }
+
+    await data.save();
+    return {
+      status: true,
+      message: "Data Updated Successfully!!",
+      data: data,
+    };
+  } catch (error) {
+    console.log(error);
+    return { status: false, message: error.message, error: error };
+  }
+};
+module.exports = {
+  getCheckInRequest,
+  getCheckOutRequest,
+  updateCheckInRequest,
+};

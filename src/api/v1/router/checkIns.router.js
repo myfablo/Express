@@ -5,9 +5,31 @@ const {
   addCheckOut,
 } = require("../controller/checkIns.controller.js");
 const upload = require("../middlewares/multer.middleware.js"); // Assuming you have a separate upload middleware file
+const authenticateRider = require("../middlewares/auth.middleware.js");
 
-router.post("/inDetails", upload.single("checkInImage"), addCheckIn);
+//const upload = uploadMiddleware();
+// Add check-in route
+router.post(
+  "/in-Details",
+  //authenticateRider,
+  upload.single("checkInImage"),
+  addCheckIn
+);
 
-router.post("/outDetails", upload.single("checkOutImage"), addCheckOut);
+// Add check-out route
+router.post(
+  "/out-Details",
+  // authenticateRider,
+  upload.single("checkOutImage"),
+  addCheckOut
+);
+
+// Add update check-in route
+router.post(
+  "/update-CheckIn",
+  // authenticateRider,
+  upload.single("checkInImage"),
+  updateCheckIn
+);
 
 module.exports = router;
