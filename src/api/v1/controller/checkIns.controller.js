@@ -8,6 +8,7 @@ const {
   getCheckInRequest,
   getCheckOutRequest,
   updateCheckInRequest,
+  updateCheckOutRequest,
 } = require("../helpers/checkIns.helper.js");
 const authenticateRider = require("../middlewares/auth.middleware.js");
 const upload = require("../middlewares/multer.middleware.js");
@@ -127,4 +128,41 @@ const updateCheckIn = async (req, res) => {
   }
 };
 
-module.exports = { addCheckIn, addCheckOut, updateCheckIn };
+//function to update the checkOut
+const updateCheckOut = async (req, res) => {
+  try {
+    const { riderId, checkOutKiloMeters, checkInId } = req.body;
+    if (!riderId || !checkInId) {
+      return badRequest(res, "riderId and checkInId both are required!!");
+    }
+
+    if (checkOutKiloMeters) {
+      if (isNaN(checkOutKiloMeters)) {
+        return badRequest(res, "KiloMeters must be a Number!");
+      }
+    }
+
+    const outLocalFilePath = req.file?.path; // Corrected accessing file path
+    console.log(outLocalFilePath);
+    // if (!inLocalFilePath) {
+    //   return badRequest(res, "check-In image is required!!");
+    // }
+
+    const { status, message, data } = await updateCheckOutRequest(
+      riderId,
+      checkOutKiloMeters,
+      outLocalFilePath,
+      checkInId
+    );
+
+    // Handle response based on status
+    return status
+      ? success(res, message, data)
+      : badRequest(res, message, data);
+  } catch (error) {
+    console.error("Error updating check-out document:", error);
+    return unknownError(res, error);
+  }
+};
+
+module.exports = { addCheckIn, addCheckOut, updateCheckIn, updateCheckOut };

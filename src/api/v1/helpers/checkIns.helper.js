@@ -276,8 +276,95 @@ const updateCheckInRequest = async (
     return { status: false, message: error.message, error: error };
   }
 };
+
+//request from controller to update checkOut
+const updateCheckOutRequest = async (
+  riderId,
+  checkOutKiloMeters,
+  outLocalFilePath,
+  checkInId
+) => {
+  try {
+    const Time = getTimeInIST();
+    const updationTime = Time.split(",")[0];
+
+    const data = await checkInsModel.findOne({
+      riderId: riderId,
+      "checkIn.checkInId": checkInId,
+    });
+
+    if (!data) {
+      return {
+        status: false,
+        message: "Data Not Found to Update it!",
+      };
+    }
+
+    if (data.riderId !== riderId) {
+      return {
+        status: false,
+        message: "You are not permitted to update the data!",
+      };
+    }
+
+    const checkedOutTime = data.checkOut.checkOutTime.split(",")[0].toString();
+    if (checkedOutTime !== updationTime) {
+      return {
+        status: false,
+        message: "You can only update the data of the same day!",
+      };
+    }
+
+    if (outLocalFilePath !== data.checkOut.checkOutImage) {
+      const updatedCheckOutImage = await uploadImage(outLocalFilePath);
+      data.checkOut.checkOutImage = updatedCheckOutImage.url;
+    } else {
+      return {
+        status: false,
+        message:
+          "Image is same as the existing image!, please provide a different image",
+      };
+    }
+
+    //checkout kilometer must be greater than checkInKilometers
+    if (checkOutKiloMeters < data.checkIn.checkInKiloMeters) {
+      return {
+        status: false,
+        message:
+          "check-out Kilometers must be greater than check-In KiloMeters!",
+      };
+    }
+    if (checkOutKiloMeters === data.checkIn.checkInKiloMeters) {
+      return {
+        status: false,
+        message: "You have travelled Zero KiloMeters today!",
+      };
+    }
+    if (checkOutKiloMeters !== data.checkOut.checkOutKiloMeters) {
+      data.checkOut.checkOutKiloMeters = checkOutKiloMeters;
+      data.distance = checkOutKiloMeters - data.checkIn.checkInKiloMeters;
+    } else {
+      return {
+        status: false,
+        message: "checkOutKiloMeters is same as existing uploaded KiloMeters!",
+      };
+    }
+
+    await data.save();
+    return {
+      status: true,
+      message: "Data Updated Successfully!!",
+      data: data,
+    };
+  } catch (error) {
+    console.log(error);
+    return { status: false, message: error.message, error: error };
+  }
+};
+
 module.exports = {
   getCheckInRequest,
   getCheckOutRequest,
   updateCheckInRequest,
+  updateCheckOutRequest,
 };

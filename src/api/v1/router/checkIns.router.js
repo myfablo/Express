@@ -3,6 +3,8 @@ const router = express.Router();
 const {
   addCheckIn,
   addCheckOut,
+  updateCheckIn,
+  updateCheckOut,
 } = require("../controller/checkIns.controller.js");
 const upload = require("../middlewares/multer.middleware.js"); // Assuming you have a separate upload middleware file
 const authenticateRider = require("../middlewares/auth.middleware.js");
@@ -30,6 +32,14 @@ router.post(
   // authenticateRider,
   upload.single("checkInImage"),
   updateCheckIn
+);
+
+// Add update check-out route
+router.post(
+  "/update-CheckOut",
+  // authenticateRider,
+  upload.single("checkOutImage"),
+  updateCheckOut
 );
 
 module.exports = router;
