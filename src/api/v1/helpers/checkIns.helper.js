@@ -362,9 +362,62 @@ const updateCheckOutRequest = async (
   }
 };
 
+//request from controller to delete checkIn
+const deleteCheckInRequest = async (riderId, checkInId) => {
+  try {
+    const data = await checkInsModel.findOne({
+      riderId: riderId,
+      "checkIn.checkInId": checkInId,
+    });
+
+    if (!data) {
+      return {
+        status: false,
+        message: "Data Not Found for deleting!",
+      };
+    }
+    await data?.checkIn?.remove();
+
+    return {
+      status: true,
+      message: "Data Deleted Successfully!!",
+    };
+  } catch (error) {
+    console.log(error);
+    return { status: false, message: error.message, error: error };
+  }
+};
+
+//request from controller to delete checkOut
+const deleteCheckOutRequest = async (riderId, checkInId) => {
+  try {
+    const data = await checkInsModel.findOne({
+      riderId: riderId,
+      "checkIn.checkInId": checkInId,
+    });
+
+    if (!data) {
+      return {
+        status: false,
+        message: "Data Not Found for deleting!",
+      };
+    }
+    await data?.checkOut?.remove();
+
+    return {
+      status: true,
+      message: "Data Deleted Successfully!!",
+    };
+  } catch (error) {
+    console.log(error);
+    return { status: false, message: error.message, error: error };
+  }
+};
 module.exports = {
   getCheckInRequest,
   getCheckOutRequest,
   updateCheckInRequest,
   updateCheckOutRequest,
+  deleteCheckInRequest,
+  deleteCheckOutRequest,
 };

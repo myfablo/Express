@@ -9,6 +9,8 @@ const {
   getCheckOutRequest,
   updateCheckInRequest,
   updateCheckOutRequest,
+  deleteCheckInRequest,
+  deleteCheckOutRequest,
 } = require("../helpers/checkIns.helper.js");
 const authenticateRider = require("../middlewares/auth.middleware.js");
 const upload = require("../middlewares/multer.middleware.js");
@@ -165,4 +167,59 @@ const updateCheckOut = async (req, res) => {
   }
 };
 
-module.exports = { addCheckIn, addCheckOut, updateCheckIn, updateCheckOut };
+//function to delete the checkIn
+const deleteCheckIn = async (req, res) => {
+  try {
+    const { checkInId, riderId } = req.body;
+
+    if (!riderId || !checkInId) {
+      return badRequest(res, "riderId and checkInId both are required!!");
+    }
+
+    const { status, message, data } = await deleteCheckInRequest(
+      riderId,
+      checkInId
+    );
+
+    // Handle response based on status
+    return status
+      ? success(res, message, data)
+      : badRequest(res, message, data);
+  } catch (error) {
+    console.error("Error While deleting check-In document:", error);
+    return unknownError(res, error);
+  }
+};
+
+//function to delete the checkOut
+const deleteCheckOut = async (req, res) => {
+  try {
+    const { checkInId, riderId } = req.body;
+
+    if (!riderId || !checkInId) {
+      return badRequest(res, "riderId and checkInId both are required!!");
+    }
+
+    const { status, message, data } = await deleteCheckOutRequest(
+      riderId,
+      checkInId
+    );
+
+    // Handle response based on status
+    return status
+      ? success(res, message, data)
+      : badRequest(res, message, data);
+  } catch (error) {
+    console.error("Error While deleting check-Out document:", error);
+    return unknownError(res, error);
+  }
+};
+
+module.exports = {
+  addCheckIn,
+  addCheckOut,
+  updateCheckIn,
+  updateCheckOut,
+  deleteCheckIn,
+  deleteCheckOut,
+};
