@@ -36,7 +36,7 @@ const getTimeInIST = () => {
       return badRequest(res, "checkInTime is not defined");
     }
 
-    return time;
+    return time.format("MMMM-Do-YYYY, h:mm:ss");
   } catch (error) {
     console.log(error);
     return badRequest(error, "Error while generating the live time!!");

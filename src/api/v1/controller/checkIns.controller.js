@@ -5,8 +5,9 @@ const {
 } = require("../helpers/response.helper.js");
 // const isValidObjectId = require("mongoose").isValidObjectId;
 const {
+  addCheckInRequest,
+  addCheckOutRequest,
   getCheckInRequest,
-  getCheckOutRequest,
   updateCheckInRequest,
   updateCheckOutRequest,
   deleteCheckInRequest,
@@ -14,6 +15,26 @@ const {
 } = require("../helpers/checkIns.helper.js");
 const authenticateRider = require("../middlewares/auth.middleware.js");
 const upload = require("../middlewares/multer.middleware.js");
+
+//get the checkIn Data by riderId
+const getCheckInByRiderId = async (req, res) => {
+  try {
+    const riderId = req.params.riderId;
+
+    if (!riderId) {
+      return badRequest(res, "Rider Id is required!");
+    }
+
+    const { status, message, data } = getCheckInRequest(riderId);
+
+    return status
+      ? success(res, message, data)
+      : badRequest(res, message, data);
+  } catch (error) {
+    console.log(`Error while getting the data of rider: ${error}`);
+    return unknownError(res, error);
+  }
+};
 
 //check-In controller function
 const addCheckIn = async (req, res) => {
@@ -40,7 +61,7 @@ const addCheckIn = async (req, res) => {
       return badRequest(res, "KiloMeters must be a Number!");
     }
 
-    const { status, message, data } = await getCheckInRequest(
+    const { status, message, data } = await addCheckInRequest(
       riderId,
       checkInKiloMeters,
       inLocalFilePath
@@ -78,7 +99,7 @@ const addCheckOut = async (req, res) => {
       return badRequest(res, "check-Out image is required!!");
     }
 
-    const { status, message, data } = await getCheckOutRequest(
+    const { status, message, data } = await addCheckOutRequest(
       riderId,
       checkInOutId,
       checkOutKiloMeters,
@@ -224,6 +245,7 @@ const deleteCheckOut = async (req, res) => {
 };
 
 module.exports = {
+  getCheckInByRiderId,
   addCheckIn,
   addCheckOut,
   updateCheckIn,

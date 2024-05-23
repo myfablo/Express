@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const {
+  getCheckInByRiderId,
   addCheckIn,
   addCheckOut,
   updateCheckIn,
@@ -12,6 +13,10 @@ const upload = require("../middlewares/multer.middleware.js"); // Assuming you h
 const authenticateRider = require("../middlewares/auth.middleware.js");
 
 //const upload = uploadMiddleware();
+
+//Get check-In data route
+router.get("/get-check-In/:riderId", getCheckInByRiderId);
+
 // Add check-in route
 router.post(
   "/in-Details",

@@ -13,7 +13,7 @@ const {
 } = require("./other.helper.js");
 
 //request from controller to checkIn
-const getCheckInRequest = async (
+const addCheckInRequest = async (
   riderId,
   checkInKiloMeters,
   inLocalFilePath
@@ -88,7 +88,7 @@ const getCheckInRequest = async (
 };
 
 //request from controller to checkOut
-const getCheckOutRequest = async (
+const addCheckOutRequest = async (
   riderId,
   checkInOutId,
   checkOutKiloMeters,
@@ -204,6 +204,29 @@ const getCheckOutRequest = async (
   }
 };
 
+//request from controller to get checkIn data by riderId
+const getCheckInRequest = async (riderId) => {
+  try {
+    const Data = await checkInsModel.findOne({ riderId: riderId });
+
+    if (!Data) {
+      return {
+        status: false,
+        message: "Data Not Found of Given Rider!",
+      };
+    }
+
+    let checkedInData = Data.checkIn;
+    return {
+      status: true,
+      message: "Check-In Data Retrieved Successfully!!",
+      data: checkedInData,
+    };
+  } catch (error) {
+    console.log(error);
+    return { status: false, message: error.message, data: error };
+  }
+};
 //request from controller to update checkIn
 const updateCheckInRequest = async (
   riderId,
@@ -435,7 +458,9 @@ const deleteCheckOutRequest = async (riderId, checkInId) => {
 };
 module.exports = {
   getCheckInRequest,
-  getCheckOutRequest,
+
+  addCheckInRequest,
+  addCheckOutRequest,
   updateCheckInRequest,
   updateCheckOutRequest,
   deleteCheckInRequest,
