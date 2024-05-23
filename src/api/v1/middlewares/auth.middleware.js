@@ -30,40 +30,53 @@ const dateDifference = (expireDate) => {
   return dayDifference;
 };
 
+const parseJwt = (data) => {
+  try {
+    let token = data.slice(7);
+    const decode = Buffer.from(token.split(".")[1], "base64");
+    const toString = decode.toString();
+    return JSON.parse(toString);
+  } catch (e) {
+    return null;
+  }
+}
 const authenticateRider = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+  let authHeader = req.headers.authorization;
+  const decode = parseJwt(authHeader)
   if (authHeader) {
     const token = authHeader.split(" ")[1];
-    const decodedToken = parseJWT(token);
-    if (!decodedToken) {
-      return unauthorized(res, "Invalid token");
-    }
-
-    const exp = decodedToken.exp;
-    const daysToExpire = dateDifference(exp);
-
-    jwt.verify(token, riderPublicKey, verifyOptions, (err, decoded) => {
-      if (err) {
-        return unauthorized(res, "Invalid token");
-      }
-      let shouldChange = false;
-
-      if (daysToExpire <= 2) {
-        const newToken = generateRiderToken(decoded);
-        shouldChange = true;
-        res.setHeader(shouldChange, newToken); // Send the new token in the response header
-      }
-
-      req.user = decoded;
+    try {
+      verifyToken(token, riderPublicKey, verifyOptions, decode, res)
       next();
-    });
+    } catch (err) {
+      console.log(err);
+      unauthorized(res, "invalid token");
+    }
   } else {
-    return forbidden(res, "Token not found!");
+    forbidden(res, "token not found");
   }
-};
+}
+
+
+const verifyToken = (token, publicKey, verifyOptions, decode, res) => {
+  try {
+    jwt.verify(token, publicKey, verifyOptions);
+    let shouldChange = false
+    const dateDiff = dateDifference(decode.exp)
+    if (dateDiff <= 2) {
+      token = generateRiderToken(decode.role, decode)
+      shouldChange = true
+    }
+    res.tokenInfo = { token, shouldChange }
+    return
+  } catch (error) {
+    console.log(error);
+    throw new Error(error.message)
+  }
+}
 
 module.exports = {
   authenticateRider,
   generateRiderToken,
-  dateDifference,
+  parseJwt,
 };
