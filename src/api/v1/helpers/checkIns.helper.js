@@ -3,9 +3,7 @@ const {
   unknownError,
   alreadyExist,
 } = require("./response.helper.js");
-const moment = require("moment-timezone");
 const { checkInsModel } = require("../models/checkIn.model.js");
-const mongoose = require("mongoose");
 const { format } = require("date-fns");
 const {
   generateRandomBytes,
@@ -42,7 +40,9 @@ const addCheckInRequest = async (
     let checkInData;
 
     // Checking if there is already a check-in by the same user
-    const checkedInData = await checkInsModel.findOne({ riderId: riderId });
+    const checkedInData = await checkInsModel
+      .findOne({ riderId: riderId })
+      .select("-__v");
     if (
       checkedInData &&
       checkedInData.checkIn &&
@@ -77,7 +77,7 @@ const addCheckInRequest = async (
       data: checkInData,
     };
   } catch (error) {
-    console.log(error);
+    console.error(`Something went wrong while getting data : ${error}`);
     return { status: false, message: error.message, data: error };
   }
 };
@@ -96,15 +96,13 @@ const addCheckOutRequest = async (
     const checkOutImage = await uploadImage(outLocalFilePath);
 
     // Checking if the rider has already checked out today
-    const checkOutData = await checkInsModel.findOne({
-      "checkIn.checkInId": checkInOutId,
-    });
-    if (
-      checkOutData &&
-      checkOutData.checkOut &&
-      checkOutData.checkOut.checkOutTime
-    ) {
-      let retrievedTime = new Date(checkOutData.checkOut.checkOutTime);
+    const data = await checkInsModel
+      .findOne({
+        "checkIn.checkInId": checkInOutId,
+      })
+      .select("-__v");
+    if (data && data.checkOut && data.checkOut.checkOutTime) {
+      let retrievedTime = new Date(data.checkOut.checkOutTime);
       let formattedTime = format(retrievedTime, "MMMM-do-yyyy");
       if (time === formattedTime) {
         return {
@@ -113,11 +111,6 @@ const addCheckOutRequest = async (
         };
       }
     }
-
-    // Find the check-in data
-    const data = await checkInsModel.findOne({
-      "checkIn.checkInId": checkInOutId,
-    });
 
     if (!data) {
       return {
@@ -165,37 +158,65 @@ const addCheckOutRequest = async (
       data: data,
     };
   } catch (error) {
-    console.log(error);
+    console.error(`Something went wrong while getting data : ${error}`);
     return { status: false, message: error.message, error: error };
   }
 };
 
-//request from controller to get checkIn data by riderId
-const getCheckInRequest = async (riderId) => {
+//request from controller to get data by riderId
+const getByRiderIdRequest = async (riderId) => {
   try {
-    const Data = await checkInsModel.findOne({ riderId: riderId });
+    const data = await checkInsModel.find({ riderId }).select("-__v");
 
-    if (!Data) {
+    if (!data || data.length === 0) {
       return {
         status: false,
-        message: "Data Not Found of Given Rider!",
+        message: "Data Not Found for the Given Rider!",
       };
     }
 
-    let checkedInData = Data.checkIn;
+    const numberOfCheckIns = data.length;
+
+    // Return the entire data along with the number of documents
     return {
       status: true,
-      message: "Check-In Data Retrieved Successfully!!",
-      data: checkedInData,
+      message: "Check-In Data Retrieved Successfully!",
+      numberOfCheckIns: numberOfCheckIns,
+      data: data,
     };
   } catch (error) {
-    console.log(error);
+    console.error(`Something went wrong while getting data : ${error}`);
     return { status: false, message: error.message, data: error };
   }
 };
 
+//request from controller to get data by checkInId
+const getByCheckInIdRequest = async (checkInId) => {
+  try {
+    const data = await checkInsModel
+      .findOne({ "checkIn.checkInId": checkInId })
+      .select("-__v");
+
+    if (!data) {
+      return {
+        status: false,
+        message: "No data found with this Id!",
+      };
+    }
+
+    return {
+      status: true,
+      message: "data retrieved successfully!",
+      data: data,
+    };
+  } catch (error) {
+    console.error(`Something went wrong while getting data : ${error}`);
+    return { status: false, message: error.message, data: error };
+  }
+};
 module.exports = {
-  getCheckInRequest,
+  getByRiderIdRequest,
+  getByCheckInIdRequest,
   addCheckInRequest,
   addCheckOutRequest,
 };

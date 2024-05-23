@@ -3,17 +3,16 @@ const {
   unknownError,
   success,
 } = require("../helpers/response.helper.js");
-// const isValidObjectId = require("mongoose").isValidObjectId;
 const {
   addCheckInRequest,
   addCheckOutRequest,
-  getCheckInRequest,
+  getByRiderIdRequest,
+  getByCheckInIdRequest,
 } = require("../helpers/checkIns.helper.js");
 const authenticateRider = require("../middlewares/auth.middleware.js");
-const upload = require("../middlewares/multer.middleware.js");
 
-//get the checkIn Data by riderId
-const getCheckInByRiderId = async (req, res) => {
+//get the checkIns Data by riderId
+const getDetailsByRiderId = async (req, res) => {
   try {
     const riderId = req.params.riderId;
 
@@ -21,13 +20,34 @@ const getCheckInByRiderId = async (req, res) => {
       return badRequest(res, "Rider Id is required!");
     }
 
-    const { status, message, data } = getCheckInRequest(riderId);
+    const { status, message, data, numberOfCheckIns } =
+      await getByRiderIdRequest(riderId);
+
+    return status
+      ? success(res, message, { numberOfCheckIns, data })
+      : badRequest(res, message, { numberOfCheckIns, data });
+  } catch (error) {
+    console.log(`Error while getting the data of rider: ${error}`);
+    return unknownError(res, error);
+  }
+};
+
+//get the checkIns Data by checkInId
+const getDetailsByCheckInId = async (req, res) => {
+  try {
+    const checkInId = req.params.checkInId;
+
+    if (!checkInId) {
+      return badRequest(res, "checkIn-Id is required!");
+    }
+
+    const { status, message, data } = await getByCheckInIdRequest(checkInId);
 
     return status
       ? success(res, message, data)
       : badRequest(res, message, data);
   } catch (error) {
-    console.log(`Error while getting the data of rider: ${error}`);
+    console.log(`Error while getting the data of checkIns: ${error}`);
     return unknownError(res, error);
   }
 };
@@ -111,7 +131,8 @@ const addCheckOut = async (req, res) => {
 };
 
 module.exports = {
-  getCheckInByRiderId,
+  getDetailsByRiderId,
+  getDetailsByCheckInId,
   addCheckIn,
   addCheckOut,
 };

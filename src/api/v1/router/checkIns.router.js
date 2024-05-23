@@ -1,17 +1,21 @@
 const express = require("express");
 const router = express.Router();
 const {
-  getCheckInByRiderId,
   addCheckIn,
   addCheckOut,
+  getDetailsByRiderId,
+  getDetailsByCheckInId,
 } = require("../controller/checkIns.controller.js");
 const upload = require("../middlewares/multer.middleware.js"); // Assuming you have a separate upload middleware file
 const authenticateRider = require("../middlewares/auth.middleware.js");
 
 //const upload = uploadMiddleware();
 
-//Get check-In data route
-router.get("/get-check-In/:riderId", getCheckInByRiderId);
+//Get data by rider Id route
+router.get("/get-Details-By/:riderId", getDetailsByRiderId);
+
+//Get data by checkIn-Id route
+router.get("/get-Details/:checkInId", getDetailsByCheckInId);
 
 // Add check-in route
 router.post(
