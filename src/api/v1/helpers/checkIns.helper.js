@@ -412,12 +412,22 @@ const deleteCheckOutRequest = async (riderId, checkInId) => {
         message: "Data Not Found for deleting!",
       };
     }
-    await data?.checkOut?.remove();
+    if (data.checkOut && data.distance >= 0) {
+      data.checkOut = undefined; //set checkIn to undefined to remove it from document
+      data.distance = data.checkIn.checkInKiloMeters;
 
-    return {
-      status: true,
-      message: "Data Deleted Successfully!!",
-    };
+      await data.save();
+
+      return {
+        status: true,
+        message: "Check-Out Data Deleted Successfully!",
+      };
+    } else {
+      return {
+        status: false,
+        message: "Check-Out Data Not Found in the document!",
+      };
+    }
   } catch (error) {
     console.log(error);
     return { status: false, message: error.message, error: error };
