@@ -32,7 +32,7 @@ const checkInSchema = new Schema(
       checkOutImage: {
         type: String,
       },
-      checkOutKilometers: {
+      checkOutKiloMeters: {
         type: Number,
       },
     },

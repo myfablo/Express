@@ -12,7 +12,7 @@ const {
   uploadImage,
 } = require("./other.helper.js");
 
-//request from controller to checkIN
+//request from controller to checkIn
 const getCheckInRequest = async (
   riderId,
   checkInKiloMeters,
@@ -87,24 +87,48 @@ const getCheckInRequest = async (
   }
 };
 
-//fxn to help the checkout controller
-async function getCheckOutRequest(
+//request from controller to checkOut
+const getCheckOutRequest = async (
   riderId,
   checkInOutId,
   checkOutKiloMeters,
   outLocalFilePath
-) {
+) => {
   try {
-    const checkOutTime = getTimeInIST();
-    console.log(checkOutTime);
+    const checkingOutTime = getTimeInIST();
+    //console.log(checkOutTime);
+    const Time = checkingOutTime.split(",")[0];
+    console.log(Time);
 
     const checkOutImage = await uploadImage(outLocalFilePath);
     // console.log(riderId, checkInOutId, checkOutKiloMeters, outLocalFilePath)
+
+    //checking if the rider has already checkedOut or not
+    const checkOutData = await checkInsModel.findOne({ riderId: riderId });
+    if (
+      checkOutData &&
+      checkOutData.checkOut &&
+      checkOutData.checkOut.checkOutTime
+    ) {
+      let retrievedTime = checkOutData.checkOut.checkOutTime;
+      // console.log(retrievedTime);
+      let retrievedTimeSplit = retrievedTime.split(",")[0];
+      // console.log(retrievedTimeSplit);
+      if (Time === retrievedTimeSplit) {
+        return {
+          status: false,
+          message: "You have already checked out!!",
+        };
+      }
+    }
+
     const data = await checkInsModel.findOne({
       "checkIn.checkInId": checkInOutId,
     });
     // const data = await checkInsModel.findById(checkInOutId);
+
     //const checkInData = data.checkIn || {};
+
     if (!data) {
       return {
         status: false,
@@ -161,7 +185,7 @@ async function getCheckOutRequest(
     let distance = checkOutKiloMeters - data.checkIn.checkInKiloMeters;
 
     data.checkOut = {
-      checkOutTime: checkOutTime.format("MMMM Do YYYY, h:mm:ss a"),
+      checkOutTime: checkingOutTime, //.format("MMMM Do YYYY, h:mm:ss a"),
       checkOutImage: checkOutImage.url,
       checkOutKilometers: checkOutKiloMeters,
     };
@@ -178,6 +202,5 @@ async function getCheckOutRequest(
     console.log(error);
     return { status: false, message: error.message, error: error };
   }
-}
-
+};
 module.exports = { getCheckInRequest, getCheckOutRequest };

@@ -50,7 +50,6 @@ const addCheckIn = async (req, res) => {
     return unknownError(res, error);
   }
 };
-
 //check Out controller  function
 const addCheckOut = async (req, res) => {
   try {

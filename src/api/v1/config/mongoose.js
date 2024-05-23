@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const db = async () => {
   try {
     const connectionInstance = await mongoose.connect(
-      "mongodb://qpadmin:SquadOfM1R5@10.2.0.50:7140/fabloExpress?authSource=admin"
+      "mongodb+srv://qpadmin:sejwYz-1gabxy-pohgar@marketplace-01.ixpmpxa.mongodb.net/fabloExpress?authSource=admin"
     );
     console.log(
       "MongoDB connected successfully on:",
