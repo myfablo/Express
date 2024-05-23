@@ -8,10 +8,6 @@ const {
   addCheckInRequest,
   addCheckOutRequest,
   getCheckInRequest,
-  updateCheckInRequest,
-  updateCheckOutRequest,
-  deleteCheckInRequest,
-  deleteCheckOutRequest,
 } = require("../helpers/checkIns.helper.js");
 const authenticateRider = require("../middlewares/auth.middleware.js");
 const upload = require("../middlewares/multer.middleware.js");
@@ -114,142 +110,8 @@ const addCheckOut = async (req, res) => {
   }
 };
 
-//function to update the checkIn
-const updateCheckIn = async (req, res) => {
-  try {
-    const { riderId, checkInKiloMeters, checkInId } = req.body;
-    if (!riderId || !checkInId) {
-      return badRequest(res, "riderId and checkInId both are required!!");
-    }
-
-    if (checkInKiloMeters) {
-      if (isNaN(checkInKiloMeters)) {
-        return badRequest(res, "KiloMeters must be a Number!");
-      }
-    }
-
-    const inLocalFilePath = req.file?.path; // Corrected accessing file path
-    console.log(inLocalFilePath);
-    // if (!inLocalFilePath) {
-    //   return badRequest(res, "check-In image is required!!");
-    // }
-
-    const { status, message, data } = await updateCheckInRequest(
-      riderId,
-      checkInKiloMeters,
-      inLocalFilePath,
-      checkInId
-    );
-
-    // Handle response based on status
-    return status
-      ? success(res, message, data)
-      : badRequest(res, message, data);
-  } catch (error) {
-    console.error("Error updating check-in document:", error);
-    return unknownError(res, error);
-  }
-};
-
-//function to update the checkOut
-const updateCheckOut = async (req, res) => {
-  try {
-    const { riderId, checkOutKiloMeters, checkInId } = req.body;
-    if (!riderId || !checkInId) {
-      return badRequest(res, "riderId and checkInId both are required!!");
-    }
-
-    if (checkOutKiloMeters) {
-      if (isNaN(checkOutKiloMeters)) {
-        return badRequest(res, "KiloMeters must be a Number!");
-      }
-    }
-
-    const outLocalFilePath = req.file?.path; // Corrected accessing file path
-    console.log(outLocalFilePath);
-    // if (!inLocalFilePath) {
-    //   return badRequest(res, "check-In image is required!!");
-    // }
-
-    const { status, message, data } = await updateCheckOutRequest(
-      riderId,
-      checkOutKiloMeters,
-      outLocalFilePath,
-      checkInId
-    );
-
-    // Handle response based on status
-    return status
-      ? success(res, message, data)
-      : badRequest(res, message, data);
-  } catch (error) {
-    console.error("Error updating check-out document:", error);
-    return unknownError(res, error);
-  }
-};
-
-//function to delete the checkIn
-const deleteCheckIn = async (req, res) => {
-  try {
-    const { riderId, checkInId } = req.body;
-
-    if (!riderId) {
-      return badRequest(res, "riderId is required!!");
-    }
-    if (!checkInId) {
-      return badRequest(res, "checkInId is required!!");
-    }
-
-    const { status, message, data } = await deleteCheckInRequest(
-      riderId,
-      checkInId
-    );
-
-    // Handle response based on status
-    return status
-      ? success(res, message, data)
-      : badRequest(res, message, data);
-  } catch (error) {
-    console.error("Error While deleting check-In document:", error);
-    return unknownError(res, error);
-  }
-};
-
-//function to delete the checkOut
-const deleteCheckOut = async (req, res) => {
-  try {
-    const { riderId, checkInId } = req.body;
-    console.log(riderId);
-    console.log(checkInId);
-
-    if (!riderId) {
-      return badRequest(res, "riderId is required!!");
-    }
-    if (!checkInId) {
-      return badRequest(res, "checkInId is required!!");
-    }
-
-    const { status, message, data } = await deleteCheckOutRequest(
-      riderId,
-      checkInId
-    );
-
-    // Handle response based on status
-    return status
-      ? success(res, message, data)
-      : badRequest(res, message, data);
-  } catch (error) {
-    console.error("Error While deleting check-Out document:", error);
-    return unknownError(res, error);
-  }
-};
-
 module.exports = {
   getCheckInByRiderId,
   addCheckIn,
   addCheckOut,
-  updateCheckIn,
-  updateCheckOut,
-  deleteCheckIn,
-  deleteCheckOut,
 };
