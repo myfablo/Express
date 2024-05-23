@@ -21,7 +21,12 @@ const getCheckInRequest = async (
   try {
     // Take id and time from the separate created function
     const checkInId = await generateRandomBytes(8);
-    const checkInTime = getTimeInIST();
+    const Time = getTimeInIST();
+    // console.log(Time);
+    // console.log(Time.split(",")[0]);
+    // console.log(Time.split(",")[0]);
+    let compareTime = Time.split(",")[0];
+    console.log(compareTime);
 
     // Take image from the separate created function
     const checkInImage = await uploadImage(inLocalFilePath);
@@ -31,7 +36,7 @@ const getCheckInRequest = async (
       riderId: riderId,
       checkIn: {
         checkInId: checkInId,
-        checkInTime: checkInTime.format("MMMM Do YYYY, h:mm:ss a"),
+        checkInTime: Time,
         checkInImage: checkInImage.url,
         checkInKiloMeters: checkInKiloMeters,
       },
@@ -40,24 +45,34 @@ const getCheckInRequest = async (
     let checkInData;
     //checking if there is already a checkin by the same user
     const checkedInData = await checkInsModel.findOne({ riderId: riderId });
-    if (checkedInData) {
-      if (checkedInData.checkIn.checkInTime.equals(getTimeInIST())) {
+    if (
+      checkedInData &&
+      checkedInData.checkIn &&
+      checkedInData.checkIn.checkInTime
+    ) {
+      let retrievedTime = checkedInData.checkIn.checkInTime;
+      //  console.log(retrievedTime);
+      let formattedTime = retrievedTime.split(",")[0];
+      console.log(formattedTime);
+
+      if (formattedTime === compareTime) {
         return {
           status: false,
           message: "Rider already checkedIn for today!",
-          data: error,
+          // data: error,
         };
-      } else {
-        // Save the check-in data
-        checkInData = await checkInsModel.create(data);
       }
     }
+    // Save the check-in data
+    checkInData = await checkInsModel.create(data);
+
+    console.log(checkInData);
 
     if (!checkInData) {
       return {
         status: false,
         message: "Failed to save the Check-In Data!!",
-        data: error,
+        //data: error,
       };
     }
 
@@ -73,26 +88,23 @@ const getCheckInRequest = async (
 };
 
 //fxn to help the checkout controller
-const getCheckOutRequest = async (
+async function getCheckOutRequest(
   riderId,
   checkInOutId,
   checkOutKiloMeters,
   outLocalFilePath
-) => {
+) {
   try {
     const checkOutTime = getTimeInIST();
     console.log(checkOutTime);
 
     const checkOutImage = await uploadImage(outLocalFilePath);
     // console.log(riderId, checkInOutId, checkOutKiloMeters, outLocalFilePath)
-
     const data = await checkInsModel.findOne({
       "checkIn.checkInId": checkInOutId,
     });
     // const data = await checkInsModel.findById(checkInOutId);
-
     //const checkInData = data.checkIn || {};
-
     if (!data) {
       return {
         status: false,
@@ -166,6 +178,6 @@ const getCheckOutRequest = async (
     console.log(error);
     return { status: false, message: error.message, error: error };
   }
-};
+}
 
 module.exports = { getCheckInRequest, getCheckOutRequest };

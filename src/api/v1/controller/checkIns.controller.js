@@ -9,6 +9,8 @@ const {
   getCheckOutRequest,
   updateCheckInRequest,
 } = require("../helpers/checkIns.helper.js");
+const authenticateRider = require("../middlewares/auth.middleware.js");
+const upload = require("../middlewares/multer.middleware.js");
 
 //check-In controller function
 const addCheckIn = async (req, res) => {
