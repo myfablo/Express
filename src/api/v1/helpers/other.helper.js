@@ -61,7 +61,7 @@ const uploadImage = async (localFilePath) => {
 };
 
 //now we have to generate the public and private key to for authentication purposes!!
-const generatePublicPrivateKeys = async () => {
+const generateRiderPublicPrivateKeys = async () => {
   try {
     const { publicKey, privateKey } = generateKeyPairSync("rsa", {
       modulusLength: 2048,
@@ -76,7 +76,52 @@ const generatePublicPrivateKeys = async () => {
     });
     fs.writeFileSync("rider_public_key.pem", publicKey);
     fs.writeFileSync("rider_private_key.pem", privateKey);
-    console.log(privateKey, publicKey);
+
+    // console.log(privateKey, publicKey);
+    return { publicKey, privateKey };
+  } catch (error) {
+    console.error(`Some error occured while generating keys : ${error}`);
+  }
+};
+const generateAdminPublicPrivateKeys = async () => {
+  try {
+    const { publicKey, privateKey } = generateKeyPairSync("rsa", {
+      modulusLength: 2048,
+      publicKeyEncoding: {
+        type: "pkcs1",
+        format: "pem",
+      },
+      privateKeyEncoding: {
+        type: "pkcs1",
+        format: "pem",
+      },
+    });
+    fs.writeFileSync("admin_public_key.pem", publicKey);
+    fs.writeFileSync("admin_private_key.pem", privateKey);
+
+    // console.log(privateKey, publicKey);
+    return { publicKey, privateKey };
+  } catch (error) {
+    console.error(`Some error occured while generating keys : ${error}`);
+  }
+};
+const generateUserPublicPrivateKeys = async () => {
+  try {
+    const { publicKey, privateKey } = generateKeyPairSync("rsa", {
+      modulusLength: 2048,
+      publicKeyEncoding: {
+        type: "pkcs1",
+        format: "pem",
+      },
+      privateKeyEncoding: {
+        type: "pkcs1",
+        format: "pem",
+      },
+    });
+    fs.writeFileSync("user_public_key.pem", publicKey);
+    fs.writeFileSync("user_private_key.pem", privateKey);
+
+    // console.log(privateKey, publicKey);
     return { publicKey, privateKey };
   } catch (error) {
     console.error(`Some error occured while generating keys : ${error}`);
@@ -87,5 +132,7 @@ module.exports = {
   generateRandomBytes,
   getTimeInIST,
   uploadImage,
-  generatePublicPrivateKeys,
+  generateRiderPublicPrivateKeys,
+  generateAdminPublicPrivateKeys,
+  generateUserPublicPrivateKeys
 };
