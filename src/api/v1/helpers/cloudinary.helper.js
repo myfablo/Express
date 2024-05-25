@@ -1,5 +1,5 @@
 const cloudinary = require("cloudinary").v2;
-const fs = require("fs");
+const fs = require("fs").promises;
 
 cloudinary.config({
   cloud_name: "dpox4drsw",
@@ -7,42 +7,37 @@ cloudinary.config({
   api_secret: "1OAEFB8DF2dWrHRxItcSBsiOnbk",
 });
 
-const uploadOnCloudinary = async (localFilePath) => {
+// Utility function to handle file deletion
+const deleteLocalFile = async (filePath) => {
   try {
-    if (!localFilePath) {
-      console.log("Provide local file path");
-      return null;
-    }
+    await fs.unlink(filePath);
+    console.log("File has been deleted");
+  } catch (error) {
+    console.error("Failed to delete local file", error);
+  }
+};
 
+const uploadOnCloudinary = async (localFilePath) => {
+  if (!localFilePath) {
+    throw new Error("Provide local file path");
+  }
+
+  try {
     const response = await cloudinary.uploader.upload(localFilePath, {
       resource_type: "auto",
     });
 
     if (!response) {
-      console.log("There is a problem while uploading the file!");
-      return null;
+      throw new Error("There is a problem while uploading the file!");
     }
 
-    console.log(`File has been uploaded successfully on: ${response.url}`);
+    console.log(`File has been uploaded successfully to: ${response.url}`);
 
-    if (fs.existsSync(localFilePath)) {
-      fs.unlinkSync(localFilePath);
-      console.log("File has been deleted");
-    } else {
-      console.error("Failed to delete local file");
-    }
-
+    await deleteLocalFile(localFilePath);
     return response;
   } catch (error) {
-    if (fs.existsSync(localFilePath)) {
-      fs.unlinkSync(localFilePath);
-      console.log("File has been deleted");
-    } else {
-      console.error("Failed to delete local file");
-    }
-
-    console.log("Error in uploading image on Cloudinary", error);
-    return null;
+    await deleteLocalFile(localFilePath);
+    throw new Error(`Error uploading image to Cloudinary: ${error.message}`);
   }
 };
 

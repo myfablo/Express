@@ -19,4 +19,4 @@ server.listen(port, () => {
 
 // generateAdminPublicPrivateKeys()
 // generateRiderPublicPrivateKeys()
-generateUserPublicPrivateKeys();
+// generateUserPublicPrivateKeys();

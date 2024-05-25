@@ -3,20 +3,18 @@ const crypto = require("crypto");
 const { generateKeyPairSync } = require("crypto");
 const uploadOnCloudinary = require("./cloudinary.helper.js");
 const { badRequest } = require("./response.helper.js");
-const fs = require("fs");
-const { format } = require("path");
+const fs = require("fs").promises;
 
-//for generating various ids etc.
+// Generate random bytes
 const generateRandomBytes = async (length) => {
   try {
     return new Promise((resolve, reject) => {
       crypto.randomBytes(length, (err, buff) => {
         if (err) {
           console.error(err);
-          reject(err);
-        } else {
-          resolve(buff.toString("hex"));
+          return reject(err);
         }
+        resolve(buff.toString("hex"));
       });
     });
   } catch (error) {
@@ -24,44 +22,37 @@ const generateRandomBytes = async (length) => {
     throw new Error("Error while generating the RandomByte!!");
   }
 };
-//for taking time in ist
+
+// Get time in IST
 const getTimeInIST = () => {
   try {
-    //now we have to take time in ist format
-    let time;
-    time = moment().tz("Asia/kolkata"); //.format("MMMM Do YYYY, h:mm:ss a");
-    // console.log(time)
-
-    if (!time) {
-      return badRequest(res, "checkInTime is not defined");
-    }
+    const time = moment().tz("Asia/Kolkata");
+    if (!time) throw new Error("checkInTime is not defined");
 
     return time.format("MMMM-Do-YYYY, h:mm:ss");
   } catch (error) {
-    console.log(error);
-    return badRequest(error, "Error while generating the live time!!");
+    console.error(error);
+    throw new Error("Error while generating the live time!!");
   }
 };
 
-//now we have to upload image on cloudinary thru multer
+// Upload image to Cloudinary
 const uploadImage = async (localFilePath) => {
   try {
     const cloudinaryFilePath = await uploadOnCloudinary(localFilePath);
-    console.log(cloudinaryFilePath.url);
     if (!cloudinaryFilePath) {
-      return badRequest(
-        "Error uploading the check-in image file to Cloudinary"
-      );
+      throw new Error("Error uploading the check-in image file to Cloudinary");
     }
+    console.log(cloudinaryFilePath.url);
     return cloudinaryFilePath;
   } catch (error) {
-    console.log(error);
-    return badRequest(error, " Failed to upload the file to cloudinary!!");
+    console.error(error);
+    throw new Error("Failed to upload the file to Cloudinary!!");
   }
 };
 
-//now we have to generate the public and private key to for authentication purposes!!
-const generateRiderPublicPrivateKeys = async () => {
+// Generate public and private keys
+const generateKeys = async (role) => {
   try {
     const { publicKey, privateKey } = generateKeyPairSync("rsa", {
       modulusLength: 2048,
@@ -74,59 +65,21 @@ const generateRiderPublicPrivateKeys = async () => {
         format: "pem",
       },
     });
-    fs.writeFileSync("rider_public_key.pem", publicKey);
-    fs.writeFileSync("rider_private_key.pem", privateKey);
 
-    // console.log(privateKey, publicKey);
+    await fs.writeFile(`${role}_public_key.pem`, publicKey);
+    await fs.writeFile(`${role}_private_key.pem`, privateKey);
+
     return { publicKey, privateKey };
   } catch (error) {
-    console.error(`Some error occured while generating keys : ${error}`);
+    console.error(`Some error occurred while generating keys for ${role}: ${error}`);
+    throw new Error(`Error generating keys for ${role}`);
   }
 };
-const generateAdminPublicPrivateKeys = async () => {
-  try {
-    const { publicKey, privateKey } = generateKeyPairSync("rsa", {
-      modulusLength: 2048,
-      publicKeyEncoding: {
-        type: "pkcs1",
-        format: "pem",
-      },
-      privateKeyEncoding: {
-        type: "pkcs1",
-        format: "pem",
-      },
-    });
-    fs.writeFileSync("admin_public_key.pem", publicKey);
-    fs.writeFileSync("admin_private_key.pem", privateKey);
 
-    // console.log(privateKey, publicKey);
-    return { publicKey, privateKey };
-  } catch (error) {
-    console.error(`Some error occured while generating keys : ${error}`);
-  }
-};
-const generateUserPublicPrivateKeys = async () => {
-  try {
-    const { publicKey, privateKey } = generateKeyPairSync("rsa", {
-      modulusLength: 2048,
-      publicKeyEncoding: {
-        type: "pkcs1",
-        format: "pem",
-      },
-      privateKeyEncoding: {
-        type: "pkcs1",
-        format: "pem",
-      },
-    });
-    fs.writeFileSync("user_public_key.pem", publicKey);
-    fs.writeFileSync("user_private_key.pem", privateKey);
-
-    // console.log(privateKey, publicKey);
-    return { publicKey, privateKey };
-  } catch (error) {
-    console.error(`Some error occured while generating keys : ${error}`);
-  }
-};
+// Wrapper functions for generating keys for different roles
+const generateRiderPublicPrivateKeys = () => generateKeys("rider");
+const generateAdminPublicPrivateKeys = () => generateKeys("admin");
+const generateUserPublicPrivateKeys = () => generateKeys("user");
 
 module.exports = {
   generateRandomBytes,
@@ -134,5 +87,5 @@ module.exports = {
   uploadImage,
   generateRiderPublicPrivateKeys,
   generateAdminPublicPrivateKeys,
-  generateUserPublicPrivateKeys
+  generateUserPublicPrivateKeys,
 };
