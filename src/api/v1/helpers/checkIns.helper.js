@@ -6,209 +6,159 @@ const {
   uploadImage,
 } = require("./other.helper.js");
 
-//request from controller to checkIn
-const addCheckInRequest = async (
-  riderId,
-  checkInKiloMeters,
-  inLocalFilePath
-) => {
+// Add check-in request
+const addCheckInRequest = async (riderId, checkInKiloMeters, inLocalFilePath) => {
   try {
-    // Take id and time from the separate created function
     const checkInId = await generateRandomBytes(8);
-    const Time = getTimeInIST();
-    let compareTime = Time.split(",")[0];
-
-    // Take image from the separate created function
+    const currentTime = getTimeInIST();
+    const currentDateString = currentTime.split(",")[0];
     const checkInImage = await uploadImage(inLocalFilePath);
 
-    // Construct data object for check-in
     const data = {
-      riderId: riderId,
+      riderId,
       checkIn: {
-        checkInId: checkInId,
+        checkInId,
         checkInTime: new Date(),
         checkInImage: checkInImage.url,
-        checkInKiloMeters: checkInKiloMeters,
+        checkInKiloMeters,
       },
-      distance: checkInKiloMeters, // Assuming you want to set distance to checkInKiloMeters
+      distance: checkInKiloMeters,
     };
-    let checkInData;
 
-    // Checking if there is already a check-in by the same user
-    const checkedInData = await checkInsModel
-      .findOne({ riderId: riderId })
-      .select("-__v");
-    if (
-      checkedInData &&
-      checkedInData.checkIn &&
-      checkedInData.checkIn.checkInTime
-    ) {
-      let retrievedTime = new Date(checkedInData.checkIn.checkInTime);
-      let formattedTime = format(retrievedTime, "MMMM-do-yyyy");
+    const existingCheckInData = await checkInsModel.findOne({ riderId }).select("-__v");
 
-      if (formattedTime === compareTime) {
-        return {
-          status: false,
-          message: "Rider already checkedIn for today!",
-        };
-      }
+    if (existingCheckInData && isSameDayCheckIn(existingCheckInData, currentDateString)) {
+      return { status: false, message: "Rider already checked in for today!" };
     }
 
-    // Save the check-in data
-    checkInData = await checkInsModel.create(data);
-
-    console.log(checkInData);
-
-    if (!checkInData) {
-      return {
-        status: false,
-        message: "Failed to save the Check-In Data!!",
-      };
+    const savedCheckInData = await checkInsModel.create(data);
+    if (!savedCheckInData) {
+      return { status: false, message: "Failed to save the check-in data!" };
     }
 
     return {
       status: true,
-      message: "Check-In Data Saved Successfully!!",
-      data: checkInData,
+      message: "Check-in data saved successfully!",
+      data: savedCheckInData,
     };
   } catch (error) {
-    console.error(`Something went wrong while getting data : ${error}`);
+    console.error(`Error while adding check-in: ${error}`);
     return { status: false, message: error.message, data: error };
   }
 };
-//request from controller to checkOut
 
-const addCheckOutRequest = async (
-  riderId,
-  checkInOutId,
-  checkOutKiloMeters,
-  outLocalFilePath
-) => {
+const isSameDayCheckIn = (existingCheckInData, currentDateString) => {
+  if (!existingCheckInData.checkIn || !existingCheckInData.checkIn.checkInTime) return false;
+  const existingCheckInDate = new Date(existingCheckInData.checkIn.checkInTime);
+  const formattedExistingCheckInDate = format(existingCheckInDate, "MMMM-do-yyyy");
+  return formattedExistingCheckInDate === currentDateString;
+};
+
+// Add check-out request
+const addCheckOutRequest = async (riderId, checkInOutId, checkOutKiloMeters, outLocalFilePath) => {
   try {
-    const checkingOutTime = getTimeInIST();
-    const time = checkingOutTime.split(",")[0];
-
+    const currentTime = getTimeInIST();
+    const currentDateString = currentTime.split(",")[0];
     const checkOutImage = await uploadImage(outLocalFilePath);
 
-    // Checking if the rider has already checked out today
-    const data = await checkInsModel
-      .findOne({
-        "checkIn.checkInId": checkInOutId,
-      })
-      .select("-__v");
-    if (data && data.checkOut && data.checkOut.checkOutTime) {
-      let retrievedTime = new Date(data.checkOut.checkOutTime);
-      let formattedTime = format(retrievedTime, "MMMM-do-yyyy");
-      if (time === formattedTime) {
-        return {
-          status: false,
-          message: "You have already checked out today!!",
-        };
-      }
+    const existingData = await checkInsModel.findOne({ "checkIn.checkInId": checkInOutId }).select("-__v");
+
+    if (!existingData) {
+      return { status: false, message: "No check-in data found for the provided check-in ID." };
     }
 
-    if (!data) {
-      return {
-        status: false,
-        message: "No check-in data found for the provided checkInOutId",
-      };
+    if (isSameDayCheckOut(existingData, currentDateString)) {
+      return { status: false, message: "You have already checked out today!" };
     }
 
-    if (isNaN(data.checkIn.checkInKiloMeters) || isNaN(checkOutKiloMeters)) {
-      return {
-        status: false,
-        message: "Invalid values for checkIn and checkOut Kilometers!",
-      };
+    const validationResult = validateCheckOut(existingData, checkOutKiloMeters);
+    if (!validationResult.isValid) {
+      return { status: false, message: validationResult.message };
     }
 
-    if (data.checkIn.checkInKiloMeters > checkOutKiloMeters) {
-      return {
-        status: false,
-        message:
-          "Please enter checkOutKiloMeters greater than checkInKiloMeters!!",
-      };
-    }
-
-    if (data.checkIn.checkInKiloMeters == checkOutKiloMeters) {
-      return {
-        status: false,
-        message: "You have travelled for zero distance today!!",
-      };
-    }
-
-    let distance = checkOutKiloMeters - data.checkIn.checkInKiloMeters;
-
-    data.checkOut = {
+    const distance = checkOutKiloMeters - existingData.checkIn.checkInKiloMeters;
+    existingData.checkOut = {
       checkOutTime: new Date(),
       checkOutImage: checkOutImage.url,
-      checkOutKiloMeters: checkOutKiloMeters,
+      checkOutKiloMeters,
     };
-    data.distance = distance;
+    existingData.distance = distance;
 
-    await data.save();
+    await existingData.save();
 
     return {
       status: true,
-      message: "Check-Out Data Saved Successfully!!",
-      data: data,
+      message: "Check-out data saved successfully!",
+      data: existingData,
     };
   } catch (error) {
-    console.error(`Something went wrong while getting data : ${error}`);
-    return { status: false, message: error.message, error: error };
+    console.error(`Error while adding check-out: ${error}`);
+    return { status: false, message: error.message, error };
   }
 };
 
-//request from controller to get data by riderId
+const isSameDayCheckOut = (existingData, currentDateString) => {
+  if (!existingData.checkOut || !existingData.checkOut.checkOutTime) return false;
+  const existingCheckOutDate = new Date(existingData.checkOut.checkOutTime);
+  const formattedExistingCheckOutDate = format(existingCheckOutDate, "MMMM-do-yyyy");
+  return formattedExistingCheckOutDate === currentDateString;
+};
+
+const validateCheckOut = (existingData, checkOutKiloMeters) => {
+  const checkInKiloMeters = existingData.checkIn.checkInKiloMeters;
+  if (isNaN(checkInKiloMeters) || isNaN(checkOutKiloMeters)) {
+    return { isValid: false, message: "Invalid values for check-in and check-out kilometers." };
+  }
+  if (checkInKiloMeters > checkOutKiloMeters) {
+    return { isValid: false, message: "Please enter check-out kilometers greater than check-in kilometers." };
+  }
+  if (checkInKiloMeters === checkOutKiloMeters) {
+    return { isValid: false, message: "You have traveled zero distance today." };
+  }
+  return { isValid: true };
+};
+
+// Get data by rider ID
 const getByRiderIdRequest = async (riderId) => {
   try {
     const data = await checkInsModel.find({ riderId }).select("-__v");
 
     if (!data || data.length === 0) {
-      return {
-        status: false,
-        message: "Data Not Found for the Given Rider!",
-      };
+      return { status: false, message: "Data not found for the given rider." };
     }
 
-    const numberOfCheckIns = data.length;
-
-    // Return the entire data along with the number of documents
     return {
       status: true,
-      message: "Check-In Data Retrieved Successfully!",
-      numberOfCheckIns: numberOfCheckIns,
-      data: data,
+      message: "Check-in data retrieved successfully.",
+      numberOfCheckIns: data.length,
+      data,
     };
   } catch (error) {
-    console.error(`Something went wrong while getting data : ${error}`);
+    console.error(`Error while getting data by rider ID: ${error}`);
     return { status: false, message: error.message, data: error };
   }
 };
 
-//request from controller to get data by checkInId
+// Get data by check-in ID
 const getByCheckInIdRequest = async (checkInId) => {
   try {
-    const data = await checkInsModel
-      .findOne({ "checkIn.checkInId": checkInId })
-      .select("-__v");
+    const data = await checkInsModel.findOne({ "checkIn.checkInId": checkInId }).select("-__v");
 
     if (!data) {
-      return {
-        status: false,
-        message: "No data found with this Id!",
-      };
+      return { status: false, message: "No data found with this ID." };
     }
 
     return {
       status: true,
-      message: "data retrieved successfully!",
-      data: data,
+      message: "Data retrieved successfully.",
+      data,
     };
   } catch (error) {
-    console.error(`Something went wrong while getting data : ${error}`);
+    console.error(`Error while getting data by check-in ID: ${error}`);
     return { status: false, message: error.message, data: error };
   }
 };
+
 module.exports = {
   getByRiderIdRequest,
   getByCheckInIdRequest,

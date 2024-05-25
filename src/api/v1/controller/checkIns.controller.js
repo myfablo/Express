@@ -3,127 +3,105 @@ const {
   unknownError,
   success,
 } = require("../helpers/response.helper.js");
+
 const {
   addCheckInRequest,
   addCheckOutRequest,
   getByRiderIdRequest,
   getByCheckInIdRequest,
 } = require("../helpers/checkIns.helper.js");
+
 const authenticateRider = require("../middlewares/auth.middleware.js");
 
-//get the checkIns Data by riderId
+// Utility function to validate presence of required fields
+const validateFields = (fields, res) => {
+  for (const [field, value] of Object.entries(fields)) {
+    if (!value) {
+      badRequest(res, `${field} is required!`);
+      return false;
+    }
+    if (field.includes('KiloMeters') && isNaN(value)) {
+      badRequest(res, `KiloMeters must be a number!`);
+      return false;
+    }
+  }
+  return true;
+};
+
+// Utility function to handle response
+const handleResponse = (res, response) => {
+  const { status, message, data } = response;
+  if (status) {
+    return success(res, message, data);
+  } else {
+    return badRequest(res, message, data);
+  }
+};
+
+// Get check-ins data by riderId
 const getDetailsByRiderId = async (req, res) => {
   try {
-    const riderId = req.params.riderId;
+    const { riderId } = req.params;
 
     if (!riderId) {
-      return badRequest(res, "Rider Id is required!");
+      return badRequest(res, "Rider ID is required!");
     }
 
-    const { status, message, data, numberOfCheckIns } =
-      await getByRiderIdRequest(riderId);
-
-    return status
-      ? success(res, message, { numberOfCheckIns, data })
-      : badRequest(res, message, { numberOfCheckIns, data });
+    const response = await getByRiderIdRequest(riderId);
+    return handleResponse(res, response);
   } catch (error) {
-    console.log(`Error while getting the data of rider: ${error}`);
+    console.error(`Error while getting the data of rider: ${error}`);
     return unknownError(res, error);
   }
 };
 
-//get the checkIns Data by checkInId
+// Get check-ins data by checkInId
 const getDetailsByCheckInId = async (req, res) => {
   try {
-    const checkInId = req.params.checkInId;
+    const { checkInId } = req.params;
 
     if (!checkInId) {
-      return badRequest(res, "checkIn-Id is required!");
+      return badRequest(res, "Check-in ID is required!");
     }
 
-    const { status, message, data } = await getByCheckInIdRequest(checkInId);
-
-    return status
-      ? success(res, message, data)
-      : badRequest(res, message, data);
+    const response = await getByCheckInIdRequest(checkInId);
+    return handleResponse(res, response);
   } catch (error) {
-    console.log(`Error while getting the data of checkIns: ${error}`);
+    console.error(`Error while getting the data of check-ins: ${error}`);
     return unknownError(res, error);
   }
 };
 
-//check-In controller function
+// Add check-in controller function
 const addCheckIn = async (req, res) => {
   try {
-    //let checkInId,riderId;
     const { riderId, checkInKiloMeters } = req.body;
-
-    //taking file from request
     const inLocalFilePath = req.file?.path;
-    console.log(inLocalFilePath);
-    if (!inLocalFilePath) {
-      return badRequest(res, "check-In image is required!!");
-    }
 
-    // console.log(riderId, checkInId,kiloMeters)
+    const fields = { riderId, checkInKiloMeters, 'Check-in image': inLocalFilePath };
 
-    if (!riderId) {
-      return badRequest(res, "riderId is required!");
-    }
-    if (!checkInKiloMeters) {
-      return badRequest(res, "Check-In kiloMeters value is required!");
-    }
-    if (isNaN(checkInKiloMeters)) {
-      return badRequest(res, "KiloMeters must be a Number!");
-    }
+    if (!validateFields(fields, res)) return;
 
-    const { status, message, data } = await addCheckInRequest(
-      riderId,
-      checkInKiloMeters,
-      inLocalFilePath
-    );
-    return status
-      ? success(res, message, data)
-      : badRequest(res, message, data);
+    const response = await addCheckInRequest(riderId, checkInKiloMeters, inLocalFilePath);
+    return handleResponse(res, response);
   } catch (error) {
     console.error("Error creating check-in document:", error);
     return unknownError(res, error);
   }
 };
-//check Out controller  function
+
+// Add check-out controller function
 const addCheckOut = async (req, res) => {
   try {
     const { riderId, checkInOutId, checkOutKiloMeters } = req.body;
-
-    if (!riderId) {
-      return badRequest(res, "riderId is required!!");
-    }
-    if (!checkInOutId) {
-      return badRequest(res, "checkInOutId is required!!");
-    }
-    if (!checkOutKiloMeters) {
-      return badRequest(res, "checkOut KiloMeters is required!");
-    }
-    if (isNaN(checkOutKiloMeters)) {
-      return badRequest(res, "KiloMeters must be a Number!");
-    }
-
-    //taking file from request
     const outLocalFilePath = req.file?.path;
-    console.log(outLocalFilePath);
-    if (!outLocalFilePath) {
-      return badRequest(res, "check-Out image is required!!");
-    }
 
-    const { status, message, data } = await addCheckOutRequest(
-      riderId,
-      checkInOutId,
-      checkOutKiloMeters,
-      outLocalFilePath
-    );
-    return status
-      ? success(res, message, data)
-      : badRequest(res, message, data);
+    const fields = { riderId, checkInOutId, checkOutKiloMeters, 'Check-out image': outLocalFilePath };
+
+    if (!validateFields(fields, res)) return;
+
+    const response = await addCheckOutRequest(riderId, checkInOutId, checkOutKiloMeters, outLocalFilePath);
+    return handleResponse(res, response);
   } catch (error) {
     console.error("Error creating check-out document:", error);
     return unknownError(res, error);
