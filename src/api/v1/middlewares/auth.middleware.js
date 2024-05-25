@@ -1,200 +1,125 @@
-const fs = require("fs");
+const fs = require("fs").promises;
 const jwt = require("jsonwebtoken");
+const path = require("path");
 const { forbidden, unauthorized } = require("../helpers/response.helper.js");
 
+// Load keys asynchronously
+const loadKeys = async () => {
+  const roles = ['rider', 'admin', 'user'];
+  const keys = {};
+  for (const role of roles) {
+    keys[role] = {
+      privateKey: await fs.readFile(path.join( 'key', role, `${role}_private_key.pem`), 'utf-8'),
+      publicKey: await fs.readFile(path.join('key', role, `${role}_public_key.pem`), 'utf-8')
+    };
+  }
+  return keys;
+};
 
-//--------------------------------------------------------private keys--------------------------------------------------------------------------------------------
-const riderPrivateKey = fs.readFileSync(
-  "./key/rider/rider_private_key.pem",
-  "utf-8"
-);
-const adminPrivateKey = fs.readFileSync(
-  "./key/admin/admin_private_key.pem",
-  "utf-8"
-);
-const userPrivateKey = fs.readFileSync(
-  "./key/user/user_private_key.pem",
-  "utf-8"
-);
+// Load all keys at once
+const keysPromise = loadKeys();
 
-
-//----------------------------------------------------------public keys------------------------------------------------------------------------------------------
-const riderPublicKey = fs.readFileSync(
-  "./key/rider/rider_public_key.pem",
-  "utf-8"
-);
-const adminPublicKey = fs.readFileSync(
-  "./key/admin/admin_public_key.pem",
-  "utf-8"
-);
-
-const userPublicKey = fs.readFileSync(
-  "./key/user/user_public_key.pem",
-  "utf-8"
-);
-
-//--------------------------------------------------options-------------------------------------------------//
+// JWT options
 const signOptions = { expiresIn: "30d", algorithm: "RS256" };
 const verifyOptions = { algorithms: ["RS256"] };
 
-
-
-const generateRiderToken = (user) => {
-  const data = {
-    riderId: user.riderId,
-    role: 1,
-  };
-  return jwt.sign(data, riderPrivateKey, signOptions);
+// Generate tokens
+const generateToken = (user, role) => {
+  const data = { [`${role}Id`]: user[`${role}Id`], role: getRoleCode(role) };
+  return jwt.sign(data, keys[role].privateKey, signOptions);
 };
 
-
-const generateUserToken = (user) => {
-  const data = {
-    userId: user.userId,
-    role: 2,
-  };
-  return jwt.sign(data, userPrivateKey, signOptions);
+const getRoleCode = (role) => {
+  const roleCodes = { admin: 0, rider: 1, user: 2 };
+  return roleCodes[role];
 };
 
-
-const generateAdminToken = (user) => {
-  const data = {
-    adminId: user.adminId,
-    role: 0,
-  };
-  return jwt.sign(data, adminPrivateKey, signOptions);
-};
-
+// Date difference calculation
 const dateDifference = (expireDate) => {
-  let tokenDate = new Date(expireDate * 1000);
-  let todayDate = new Date();
-  let difference = tokenDate.getTime() - todayDate.getTime();
-  let dayDifference = difference / (1000 * 60 * 60 * 24);
-  return dayDifference;
+  const tokenDate = new Date(expireDate * 1000);
+  const todayDate = new Date();
+  const difference = tokenDate - todayDate;
+  return difference / (1000 * 60 * 60 * 24);
 };
 
+// Parse JWT
 const parseJwt = (data) => {
   try {
-    let token = data.slice(7);
-    const decode = Buffer.from(token.split(".")[1], "base64");
-    const toString = decode.toString();
-    return JSON.parse(toString);
+    const token = data.slice(7);
+    const decode = Buffer.from(token.split(".")[1], "base64").toString();
+    return JSON.parse(decode);
   } catch (e) {
     return null;
   }
-}
+};
 
-function authenticateUser(req, res, next) {
-  let authHeader = req.headers.authorization;
-  if (authHeader) {
-    try {
-      const decode = parseJwt(authHeader);
-      const token = authHeader.split(" ")[1];
-      if (decode.role == 0) {
-        verifyToken(token, adminPublicKey, verifyOptions, decode, res)
-        next();
-      } else if (decode.role == 1) {
-        verifyToken(token, riderPublicKey, verifyOptions, decode, res)
-        next();
-      } else if (decode.role == 2) {
-        verifyToken(token, userPublicKey, verifyOptions, decode, res)
-        next();
-      } else {
-        verifyToken(token, userPublicKey, verifyOptions, decode, res)
-        next();
-      }
-    } catch (error) {
-      unauthorized(res, "invalid token");
-    }
-  } else {
-    forbidden(res, "token not found");
-  }
-}
-
-function authenticateRider(req, res, next) {
-  let authHeader = req.headers.authorization;
-  if (authHeader) {
-    try {
-      const decode = parseJwt(authHeader);
-      const token = authHeader.split(" ")[1];
-      if (decode.role == 0) {
-        verifyToken(token, adminPublicKey, verifyOptions, decode, res)
-        next();
-      } else if (decode.role == 2) {
-        verifyToken(token, userPublicKey, verifyOptions, decode, res)
-        next();
-      } else if (decode.role == 1) {
-        verifyToken(token, riderPublicKey, verifyOptions, decode, res)
-        next();
-      } else {
-        verifyToken(token, riderPublicKey, verifyOptions, decode, res)
-        next();
-      }
-    } catch (error) {
-      unauthorized(res, "invalid token");
-    }
-  } else {
-    forbidden(res, "token not found");
-  }
-}
-
-
-function authenticateAdmin(req, res, next) {
-  let authHeader = req.headers.authorization;
-  const decode = parseJwt(authHeader)
-  if (authHeader) {
-    const token = authHeader.split(" ")[1];
-    try {
-      verifyToken(token, adminPublicKey, verifyOptions, decode, res)
-      next();
-    } catch (err) {
-      console.log(err);
-      unauthorized(res, "invalid token");
-    }
-  } else {
-    forbidden(res, "token not found");
-  }
-}
-
-
-const verifyToken = (token, publicKey, verifyOptions, decode, res) => {
+// Verify token and refresh if needed
+const verifyToken = (token, publicKey, decode, res) => {
   try {
     jwt.verify(token, publicKey, verifyOptions);
-    let shouldChange = false
-    const dateDiff = dateDifference(decode.exp)
-    if (dateDiff <= 2) {
-      token = generateTokenFromRole(decode.role, decode)
-      shouldChange = true
+    const shouldChange = dateDifference(decode.exp) <= 2;
+    if (shouldChange) {
+      token = generateToken(decode, getRoleFromCode(decode.role));
     }
-    res.tokenInfo = { token, shouldChange }
-    return
+    res.tokenInfo = { token, shouldChange };
   } catch (error) {
-    console.log(error);
-    throw new Error(error.message)
+    console.error(error);
+    throw new Error("Invalid token");
   }
-}
+};
 
-function generateTokenFromRole(role) {
-  switch (role) {
-    case 2:
-      return generateUserToken(userData)
-    case 1:
-      return generateRiderToken(userData)
-    case 0:
-      return generateAdminToken(userData)
-    default:
-      return generateUserToken()
+// Get role from code
+const getRoleFromCode = (code) => {
+  const roles = ["admin", "rider", "user"];
+  return roles[code];
+};
+
+// Middleware for authentication
+const authenticate = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return forbidden(res, "Token not found");
+
+  const token = authHeader.split(" ")[1];
+  const decode = parseJwt(authHeader);
+  if (!decode) return unauthorized(res, "Invalid token");
+
+  const keys = await keysPromise;
+
+  try {
+    verifyToken(token, keys[getRoleFromCode(decode.role)].publicKey, decode, res);
+    next();
+  } catch (error) {
+    unauthorized(res, error.message);
   }
+};
 
-}
+// Role-specific authentication
+const authenticateRole = (role) => async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return forbidden(res, "Token not found");
 
+  const token = authHeader.split(" ")[1];
+  const decode = parseJwt(authHeader);
+  if (!decode || decode.role !== getRoleCode(role)) return unauthorized(res, "Invalid token");
+
+  const keys = await keysPromise;
+
+  try {
+    verifyToken(token, keys[role].publicKey, decode, res);
+    next();
+  } catch (error) {
+    unauthorized(res, error.message);
+  }
+};
+
+// Export functions
 module.exports = {
-  authenticateRider,
-  generateRiderToken,
+  authenticateUser: authenticate,
+  authenticateRider: authenticateRole('rider'),
+  authenticateAdmin: authenticateRole('admin'),
+  generateRiderToken: (user) => generateToken(user, 'rider'),
+  generateUserToken: (user) => generateToken(user, 'user'),
+  generateAdminToken: (user) => generateToken(user, 'admin'),
   parseJwt,
-  generateTokenFromRole,
-  authenticateAdmin,
-  authenticateUser,
-
-
+  generateTokenFromRole: (role, userData) => generateToken(userData, getRoleFromCode(role))
 };

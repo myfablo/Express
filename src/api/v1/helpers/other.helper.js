@@ -4,6 +4,7 @@ const { generateKeyPairSync } = require("crypto");
 const uploadOnCloudinary = require("./cloudinary.helper.js");
 const { badRequest } = require("./response.helper.js");
 const fs = require("fs").promises;
+const path = require("path");
 
 // Generate random bytes
 const generateRandomBytes = async (length) => {
@@ -51,41 +52,65 @@ const uploadImage = async (localFilePath) => {
   }
 };
 
-// Generate public and private keys
-const generateKeys = async (role) => {
-  try {
-    const { publicKey, privateKey } = generateKeyPairSync("rsa", {
-      modulusLength: 2048,
-      publicKeyEncoding: {
-        type: "pkcs1",
-        format: "pem",
-      },
-      privateKeyEncoding: {
-        type: "pkcs1",
-        format: "pem",
-      },
-    });
+// Utility to create directories and write keys
+const saveKeys = async (role, publicKey, privateKey) => {
+  const keyDir = path.join("../key", role);
+  
+  // Ensure the directory exists
+  await fs.mkdir(keyDir, { recursive: true });
 
-    await fs.writeFile(`${role}_public_key.pem`, publicKey);
-    await fs.writeFile(`${role}_private_key.pem`, privateKey);
-
-    return { publicKey, privateKey };
-  } catch (error) {
-    console.error(`Some error occurred while generating keys for ${role}: ${error}`);
-    throw new Error(`Error generating keys for ${role}`);
-  }
+  // Write the keys
+  await fs.writeFile(path.join(keyDir, `${role}_public_key.pem`), publicKey);
+  await fs.writeFile(path.join(keyDir, `${role}_private_key.pem`), privateKey);
 };
 
-// Wrapper functions for generating keys for different roles
-const generateRiderPublicPrivateKeys = () => generateKeys("rider");
-const generateAdminPublicPrivateKeys = () => generateKeys("admin");
-const generateUserPublicPrivateKeys = () => generateKeys("user");
+// Generate keys for a role
+const generateKeys = async (role) => {
+  const { publicKey, privateKey } = generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+    publicKeyEncoding: { type: "pkcs1", format: "pem" },
+    privateKeyEncoding: { type: "pkcs1", format: "pem" },
+  });
 
+  await saveKeys(role, publicKey, privateKey);
+  return { publicKey, privateKey };
+};
+
+// Generate keys for all roles
+const generateAllKeys = async () => {
+  await generateKeys('rider');
+  await generateKeys('admin');
+  await generateKeys('user');
+};
+
+// Load keys asynchronously
+const loadKey = async (role, type) => {
+  const filePath = path.join("key", role, `${role}_${type}_key.pem`);
+  return await fs.readFile(filePath, 'utf-8');
+};
+
+const loadKeys = async () => {
+  const roles = ['rider', 'admin', 'user'];
+  const keys = {};
+  for (const role of roles) {
+    keys[role] = {
+      privateKey: await loadKey(role, 'private'),
+      publicKey: await loadKey(role, 'public')
+    };
+  }
+  return keys;
+};
+
+// Load all keys at once
+const keysPromise = loadKeys();
+
+// Exporting the key generation function
 module.exports = {
+  generateAllKeys,
+  loadKeys,
+
   generateRandomBytes,
   getTimeInIST,
   uploadImage,
-  generateRiderPublicPrivateKeys,
-  generateAdminPublicPrivateKeys,
-  generateUserPublicPrivateKeys,
-};
+
+}
