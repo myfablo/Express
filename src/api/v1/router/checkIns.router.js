@@ -5,6 +5,7 @@ const {
   addCheckOut,
   getDetailsByRiderId,
   getDetailsByCheckInId,
+  deleteData
 } = require("../controller/checkIns.controller.js");
 const upload = require("../middlewares/multer.middleware.js"); // Assuming you have a separate upload middleware file
 const authenticateRider = require("../middlewares/auth.middleware.js");
@@ -32,5 +33,8 @@ router.post(
   upload.single("checkOutImage"),
   addCheckOut
 );
+
+//router to delete data;
+router.delete("/delete-Data", deleteData);
 
 module.exports = router;

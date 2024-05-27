@@ -83,33 +83,12 @@ const generateAllKeys = async () => {
   await generateKeys('user');
 };
 
-// Load keys asynchronously
-const loadKey = async (role, type) => {
-  const filePath = path.join("key", role, `${role}_${type}_key.pem`);
-  return await fs.readFile(filePath, 'utf-8');
-};
 
-const loadKeys = async () => {
-  const roles = ['rider', 'admin', 'user'];
-  const keys = {};
-  for (const role of roles) {
-    keys[role] = {
-      privateKey: await loadKey(role, 'private'),
-      publicKey: await loadKey(role, 'public')
-    };
-  }
-  return keys;
-};
-
-// Load all keys at once
-const keysPromise = loadKeys();
 
 // Exporting the key generation function
 module.exports = {
   generateAllKeys,
-  loadKeys,
-
-  generateRandomBytes,
+ generateRandomBytes,
   getTimeInIST,
   uploadImage,
 

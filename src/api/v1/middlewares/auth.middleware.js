@@ -4,13 +4,18 @@ const path = require("path");
 const { forbidden, unauthorized } = require("../helpers/response.helper.js");
 
 // Load keys asynchronously
+const loadKey = async (role, type) => {
+  const filePath = path.join("key", role, `${role}_${type}_key.pem`);
+  return await fs.readFile(filePath, 'utf-8');
+};
+
 const loadKeys = async () => {
   const roles = ['rider', 'admin', 'user'];
   const keys = {};
   for (const role of roles) {
     keys[role] = {
-      privateKey: await fs.readFile(path.join( 'key', role, `${role}_private_key.pem`), 'utf-8'),
-      publicKey: await fs.readFile(path.join('key', role, `${role}_public_key.pem`), 'utf-8')
+      privateKey: await loadKey(role, 'private'),
+      publicKey: await loadKey(role, 'public')
     };
   }
   return keys;

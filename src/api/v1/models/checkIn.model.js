@@ -37,6 +37,10 @@ const checkInSchema = new Schema(
     distance: {
       type: Number,
     },
+    isDeleted:{
+      type:Boolean,
+      default:false
+    }
   },
   { timestamps: true }
 );

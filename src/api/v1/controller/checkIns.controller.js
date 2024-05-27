@@ -9,6 +9,7 @@ const {
   addCheckOutRequest,
   getByRiderIdRequest,
   getByCheckInIdRequest,
+  deleteDataRequest
 } = require("../helpers/checkIns.helper.js");
 
 const authenticateRider = require("../middlewares/auth.middleware.js");
@@ -108,9 +109,36 @@ const addCheckOut = async (req, res) => {
   }
 };
 
+// Function to delete the check-Ins
+const deleteData = async (req, res) => {
+  try {
+    const { riderId, checkInId } = req.body;
+
+    if (!riderId || !checkInId) {
+      const missingField = !riderId ? 'riderId' : 'checkInId';
+      return badRequest(res, `${missingField} is required!`);
+    }
+
+    const { status, message, data } = await deleteDataRequest(riderId, checkInId);
+
+    // Handle response based on status
+    if (status) {
+      return success(res, message, data);
+    } else {
+      return badRequest(res, message, data);
+    }
+  } catch (error) {
+    console.error("Error while deleting check-out document:", error);
+    return unknownError(res, error);
+  }
+};
+
+
+
 module.exports = {
   getDetailsByRiderId,
   getDetailsByCheckInId,
   addCheckIn,
   addCheckOut,
+  deleteData
 };
