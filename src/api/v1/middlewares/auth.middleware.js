@@ -79,24 +79,24 @@ const getRoleFromCode = (code) => {
   return roles[code];
 };
 
-// Middleware for authentication
-const authenticate = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return forbidden(res, "Token not found");
+// // Middleware for authentication
+// const authenticate = async (req, res, next) => {
+//   const authHeader = req.headers.authorization;
+//   if (!authHeader) return forbidden(res, "Token not found");
 
-  const token = authHeader.split(" ")[1];
-  const decode = parseJwt(authHeader);
-  if (!decode) return unauthorized(res, "Invalid token");
+//   const token = authHeader.split(" ")[1];
+//   const decode = parseJwt(authHeader);
+//   if (!decode) return unauthorized(res, "Invalid token");
 
-  const keys = await keysPromise;
+//   const keys = await keysPromise;
 
-  try {
-    verifyToken(token, keys[getRoleFromCode(decode.role)].publicKey, decode, res);
-    next();
-  } catch (error) {
-    unauthorized(res, error.message);
-  }
-};
+//   try {
+//     verifyToken(token, keys[getRoleFromCode(decode.role)].publicKey, decode, res);
+//     next();
+//   } catch (error) {
+//     unauthorized(res, error.message);
+//   }
+// };
 
 // Role-specific authentication
 const authenticateRole = (role) => async (req, res, next) => {
@@ -119,7 +119,7 @@ const authenticateRole = (role) => async (req, res, next) => {
 
 // Export functions
 module.exports = {
-  authenticateUser: authenticate,
+  authenticateUser: authenticateRole('user'),
   authenticateRider: authenticateRole('rider'),
   authenticateAdmin: authenticateRole('admin'),
   generateRiderToken: (user) => generateToken(user, 'rider'),
