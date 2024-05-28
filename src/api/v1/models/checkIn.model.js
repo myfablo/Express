@@ -14,7 +14,7 @@ const checkInSchema = new Schema(
       },
 
       checkInTime: {
-        type: String,
+        type: Date,
       },
       checkInImage: {
         type: String,
@@ -25,7 +25,7 @@ const checkInSchema = new Schema(
     },
     checkOut: {
       checkOutTime: {
-        type: String,
+        type: Date,
       },
       checkOutImage: {
         type: String,

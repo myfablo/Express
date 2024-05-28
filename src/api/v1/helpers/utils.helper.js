@@ -46,18 +46,18 @@ const getTimeDifference = async (checkInTime, checkOutTime) => {
     if (!(isSameDayCheckOut && isSameDayCheckIn)) {
       return { status: false, message: "Rider has not been checkedIn or checkedOut on the same day!" }
     }
-    const checkedInTime = moment(checkInTime.toISOString());
-    const checkedOutTime = moment(checkOutTime.toISOString());
-
-    if (!checkedInTime.isValid() || !checkedOutTime.isValid()) {
-      return { status: false, message: "Invalid date format" };
+    // Ensure checkInTime and checkOutTime are instances of Date
+    if (!(checkInTime instanceof Date) || !(checkOutTime instanceof Date)) {
+      return { status: false, message: "Invalid date format provided" };
     }
 
-    const timeDifference = moment.duration(checkedOutTime.diff(checkedInTime));
+    // Calculate time difference
+    const timeDifference = checkOutTime.getTime() - checkInTime.getTime();
 
-    const hours = Math.floor(timeDifference.asHours());
-    const minutes = Math.floor(timeDifference.asMinutes()) % 60;
-    const seconds = Math.floor(timeDifference.asSeconds()) % 60;
+    // Convert milliseconds to hours, minutes, and seconds
+    const hours = Math.floor(timeDifference / (1000 * 60 * 60));
+    const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
 
     const data = `${hours} hours, ${minutes} minutes, ${seconds} seconds`;
     return {
@@ -74,6 +74,7 @@ const getTimeDifference = async (checkInTime, checkOutTime) => {
     };
   }
 }
+
 
 // Generate random bytes
 const generateRandomBytes = async (length) => {
@@ -163,6 +164,5 @@ module.exports = {
   isSameDayCheckIn,
   isSameDayCheckOut,
   validateCheckOut,
-  getTimeDifference
-
+  getTimeDifference,
 }

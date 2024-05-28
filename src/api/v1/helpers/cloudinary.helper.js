@@ -1,5 +1,5 @@
 const cloudinary = require("cloudinary").v2;
-const fs = require("fs").promises;
+const fs = require("fs");
 
 cloudinary.config({
   cloud_name: "dpox4drsw",
@@ -10,8 +10,13 @@ cloudinary.config({
 // Utility function to handle file deletion
 const deleteLocalFile = async (filePath) => {
   try {
-    await fs.unlink(filePath);
-    console.log("File has been deleted");
+    await fs.unlink(filePath, (err) => {
+      if (err) {
+        console.error('Failed to delete local file:', err);
+        return;
+      }
+      console.log('File deleted successfully');
+    });
   } catch (error) {
     console.error("Failed to delete local file", error);
   }
