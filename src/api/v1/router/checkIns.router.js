@@ -21,7 +21,7 @@ router.get("/get-Details/:checkInId", authenticateRider, getDetailsByCheckInId);
 // Add check-in route
 router.post(
   "/in-Details",
-  // authenticateRider,
+  authenticateRider,
   upload.single("checkInImage"),
   addCheckIn
 );
@@ -29,7 +29,7 @@ router.post(
 // Add check-out route
 router.post(
   "/out-Details",
-  // authenticateRider,
+  authenticateRider,
   upload.single("checkOutImage"),
   addCheckOut
 );
