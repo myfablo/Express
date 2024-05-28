@@ -1,10 +1,13 @@
 const { checkInsModel } = require("../models/checkIn.model.js");
-const { format } = require("date-fns");
 const {
   generateRandomBytes,
   getTimeInIST,
   uploadImage,
-} = require("./other.helper.js");
+  isSameDayCheckIn,
+  isSameDayCheckOut,
+  validateCheckOut,
+  getTimeDifference
+} = require("./utils.helper.js");
 
 // Add check-in request
 const addCheckInRequest = async (riderId, checkInKiloMeters, inLocalFilePath) => {
@@ -13,6 +16,7 @@ const addCheckInRequest = async (riderId, checkInKiloMeters, inLocalFilePath) =>
     const currentTime = getTimeInIST();
     const currentDateString = currentTime.split(",")[0];
     const checkInImage = await uploadImage(inLocalFilePath);
+
 
     const data = {
       riderId,
@@ -23,6 +27,7 @@ const addCheckInRequest = async (riderId, checkInKiloMeters, inLocalFilePath) =>
         checkInKiloMeters,
       },
       distance: checkInKiloMeters,
+
     };
 
     const existingCheckInData = await checkInsModel.findOne({ riderId }).select("-__v");
@@ -47,12 +52,7 @@ const addCheckInRequest = async (riderId, checkInKiloMeters, inLocalFilePath) =>
   }
 };
 
-const isSameDayCheckIn = (existingCheckInData, currentDateString) => {
-  if (!existingCheckInData.checkIn || !existingCheckInData.checkIn.checkInTime) return false;
-  const existingCheckInDate = new Date(existingCheckInData.checkIn.checkInTime);
-  const formattedExistingCheckInDate = format(existingCheckInDate, "MMMM-do-yyyy");
-  return formattedExistingCheckInDate === currentDateString;
-};
+
 
 // Add check-out request
 const addCheckOutRequest = async (riderId, checkInOutId, checkOutKiloMeters, outLocalFilePath) => {
@@ -67,6 +67,11 @@ const addCheckOutRequest = async (riderId, checkInOutId, checkOutKiloMeters, out
       return { status: false, message: "No check-in data found for the provided check-in ID." };
     }
 
+    //check if the this checkIn id belongs to this rider or not
+    if (existingData.riderId !== riderId) {
+      return { status: false, message: "This check-in ID does not belong to this rider" }
+    }
+
     if (isSameDayCheckOut(existingData, currentDateString)) {
       return { status: false, message: "You have already checked out today!" };
     }
@@ -76,13 +81,22 @@ const addCheckOutRequest = async (riderId, checkInOutId, checkOutKiloMeters, out
       return { status: false, message: validationResult.message };
     }
 
+    // Get the time difference between checkIn and checkOut
+    const checkOutTime = new Date();
+    const { status, message, data: timeDifference } = await getTimeDifference(existingData.checkIn.checkInTime, checkOutTime);
+
+    if (!status) {
+      return { status: false, message };
+    }
+
     const distance = checkOutKiloMeters - existingData.checkIn.checkInKiloMeters;
     existingData.checkOut = {
-      checkOutTime: new Date(),
+      checkOutTime,
       checkOutImage: checkOutImage.url,
       checkOutKiloMeters,
     };
     existingData.distance = distance;
+    existingData.totalTime = timeDifference;
 
     await existingData.save();
 
@@ -97,26 +111,7 @@ const addCheckOutRequest = async (riderId, checkInOutId, checkOutKiloMeters, out
   }
 };
 
-const isSameDayCheckOut = (existingData, currentDateString) => {
-  if (!existingData.checkOut || !existingData.checkOut.checkOutTime) return false;
-  const existingCheckOutDate = new Date(existingData.checkOut.checkOutTime);
-  const formattedExistingCheckOutDate = format(existingCheckOutDate, "MMMM-do-yyyy");
-  return formattedExistingCheckOutDate === currentDateString;
-};
 
-const validateCheckOut = (existingData, checkOutKiloMeters) => {
-  const checkInKiloMeters = existingData.checkIn.checkInKiloMeters;
-  if (isNaN(checkInKiloMeters) || isNaN(checkOutKiloMeters)) {
-    return { isValid: false, message: "Invalid values for check-in and check-out kilometers." };
-  }
-  if (checkInKiloMeters > checkOutKiloMeters) {
-    return { isValid: false, message: "Please enter check-out kilometers greater than check-in kilometers." };
-  }
-  if (checkInKiloMeters === checkOutKiloMeters) {
-    return { isValid: false, message: "You have traveled zero distance today." };
-  }
-  return { isValid: true };
-};
 
 // Get data by rider ID
 const getByRiderIdRequest = async (riderId) => {
@@ -175,8 +170,8 @@ const deleteDataRequest = async (riderId, checkInId) => {
       };
     }
 
- data.isDeleted = true;
- data.save();
+    data.isDeleted = true;
+    data.save();
 
     return {
       status: true,
@@ -191,6 +186,8 @@ const deleteDataRequest = async (riderId, checkInId) => {
     };
   }
 };
+
+
 
 module.exports = {
   getByRiderIdRequest,

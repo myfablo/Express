@@ -8,7 +8,7 @@ const {
   deleteData
 } = require("../controller/checkIns.controller.js");
 const upload = require("../middlewares/multer.middleware.js"); // Assuming you have a separate upload middleware file
-const {authenticateRider} = require("../middlewares/auth.middleware.js");
+const { authenticateRider } = require("../middlewares/auth.middleware.js");
 
 //const upload = uploadMiddleware();
 
@@ -16,12 +16,12 @@ const {authenticateRider} = require("../middlewares/auth.middleware.js");
 router.get("/get-Details-By/:riderId", authenticateRider, getDetailsByRiderId);
 
 //Get data by checkIn-Id route
-router.get("/get-Details/:checkInId",  authenticateRider,getDetailsByCheckInId);
+router.get("/get-Details/:checkInId", authenticateRider, getDetailsByCheckInId);
 
 // Add check-in route
 router.post(
   "/in-Details",
-  authenticateRider,
+  // authenticateRider,
   upload.single("checkInImage"),
   addCheckIn
 );
@@ -29,7 +29,7 @@ router.post(
 // Add check-out route
 router.post(
   "/out-Details",
-   authenticateRider,
+  // authenticateRider,
   upload.single("checkOutImage"),
   addCheckOut
 );

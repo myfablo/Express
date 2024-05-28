@@ -1,10 +1,10 @@
 const http = require("http");
 const dotenv = require("dotenv");
 const express = require("express");
-const { generateAdminPublicPrivateKeys, generateRiderPublicPrivateKeys, generateUserPublicPrivateKeys } = require("./src/api/v1/helpers/other.helper.js")
+
 
 const app = require('./app');
-const { generatePublicPrivateKeys } = require("./src/api/v1/helpers/other.helper.js");
+const { generateAllKeys } = require("./src/api/v1/helpers/utils.helper.js");
 
 dotenv.config((process.env.TZ = "Asia/Calcutta"));
 
