@@ -27,6 +27,8 @@ const addCheckInRequest = async (riderId, checkInKiloMeters, inLocalFilePath) =>
         checkInKiloMeters,
       },
       distance: checkInKiloMeters,
+      totalTime,
+      isDeleted
 
     };
 
@@ -48,7 +50,7 @@ const addCheckInRequest = async (riderId, checkInKiloMeters, inLocalFilePath) =>
     };
   } catch (error) {
     console.error(`Error while adding check-in: ${error}`);
-    return { status: false, message: error.message, data: error };
+    return { status: false, message: error.message, data: {} };
   }
 };
 
@@ -76,18 +78,15 @@ const addCheckOutRequest = async (riderId, checkInOutId, checkOutKiloMeters, out
       return { status: false, message: "You have already checked out today!" };
     }
 
-    const validationResult = validateCheckOut(existingData, checkOutKiloMeters);
-    if (!validationResult.isValid) {
-      return { status: false, message: validationResult.message };
+    //checkIf checkOut KM must be greater than checkIn KM
+    const checkInKiloMeters = existingData.checkIn.checkInKiloMeters;
+    if (checkInKiloMeters > checkOutKiloMeters) {
+      return { status: false, message: "Please enter check-out kilometers greater than check-in kilometers." };
     }
-
-    // Get the time difference between checkIn and checkOut
+   
+   // Get the time difference between checkIn and checkOut
     const checkOutTime = new Date();
-    const { status, message, data: timeDifference } = await getTimeDifference(existingData.checkIn.checkInTime, checkOutTime);
-
-    if (!status) {
-      return { status: false, message };
-    }
+    const timeDifference = await getTimeDifference(existingData.checkIn.checkInTime, checkOutTime);
 
     const distance = checkOutKiloMeters - existingData.checkIn.checkInKiloMeters;
     existingData.checkOut = {
@@ -107,7 +106,7 @@ const addCheckOutRequest = async (riderId, checkInOutId, checkOutKiloMeters, out
     };
   } catch (error) {
     console.error(`Error while adding check-out: ${error}`);
-    return { status: false, message: error.message, error };
+    return { status: false, message: error.message, data: {} };
   }
 };
 
@@ -130,7 +129,7 @@ const getByRiderIdRequest = async (riderId) => {
     };
   } catch (error) {
     console.error(`Error while getting data by rider ID: ${error}`);
-    return { status: false, message: error.message, data: error };
+    return { status: false, message: error.message, data: {} };
   }
 };
 
@@ -140,7 +139,7 @@ const getByCheckInIdRequest = async (checkInId) => {
     const data = await checkInsModel.findOne({ "checkIn.checkInId": checkInId }).select("-__v");
 
     if (!data) {
-      return { status: false, message: "No data found with this ID." };
+      return { status: false, message: "No data found with this check-In ID." };
     }
 
     return {
@@ -150,7 +149,7 @@ const getByCheckInIdRequest = async (checkInId) => {
     };
   } catch (error) {
     console.error(`Error while getting data by check-in ID: ${error}`);
-    return { status: false, message: error.message, data: error };
+    return { status: false, message: error.message, data: {} };
   }
 };
 
@@ -166,7 +165,7 @@ const deleteDataRequest = async (riderId, checkInId) => {
     if (!data) {
       return {
         status: false,
-        message: "Data not found for deleting!",
+        message: "Data not found!",
       };
     }
 
@@ -182,7 +181,7 @@ const deleteDataRequest = async (riderId, checkInId) => {
     return {
       status: false,
       message: error.message,
-      error,
+      data: {}
     };
   }
 };

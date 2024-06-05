@@ -9,19 +9,21 @@ const {
 } = require("../controller/checkIns.controller.js");
 const upload = require("../middlewares/multer.middleware.js"); // Assuming you have a separate upload middleware file
 const { authenticateRider } = require("../middlewares/auth.middleware.js");
+const  { getByRiderIdValidator, getByCheckInIdValidator, addCheckInValidator, addCheckOutValidator, deleteDataValidator } = require('../helpers/validator.helper.js')
 
 //const upload = uploadMiddleware();
 
 //Get data by rider Id route
-router.get("/get-Details-By/:riderId", authenticateRider, getDetailsByRiderId);
+router.get("/get-Details-By/:riderId", authenticateRider, getByRiderIdValidator, getDetailsByRiderId);
 
 //Get data by checkIn-Id route
-router.get("/get-Details/:checkInId", authenticateRider, getDetailsByCheckInId);
+router.get("/get-Details/:checkInId", authenticateRider, getByCheckInIdValidator, getDetailsByCheckInId);
 
 // Add check-in route
 router.post(
   "/in-Details",
   authenticateRider,
+  addCheckInValidator,
   upload.single("checkInImage"),
   addCheckIn
 );
@@ -30,11 +32,12 @@ router.post(
 router.post(
   "/out-Details",
   authenticateRider,
+  addCheckOutValidator,
   upload.single("checkOutImage"),
   addCheckOut
 );
 
 //router to delete data;
-router.delete("/delete-Data", authenticateRider, deleteData);
+router.delete("/delete-Data", authenticateRider, deleteDataValidator, deleteData);
 
 module.exports = router;

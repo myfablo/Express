@@ -13,7 +13,7 @@ const {
 } = require("../helpers/checkIns.helper.js");
 
 const authenticateRider = require("../middlewares/auth.middleware.js");
-const { validationResult} =require('express-validator')
+const { validationResult } = require('express-validator')
 
 
 
@@ -24,17 +24,16 @@ const getDetailsByRiderId = async (req, res) => {
     const errors = validationResult(req);
 
     if (!(errors.isEmpty())) {
-        return res.status(400).json({
-            success: false,
-            msg: 'Errors',
-            errors: errors.array()
-        })
+      return res.status(400).json({
+        success: false,
+        msg: 'Errors',
+        errors: errors.array()
+      })
     }
-
 
     const { riderId } = req.params;
 
-    const  { status, message, data } = await getByRiderIdRequest(riderId);
+    const { status, message, data } = await getByRiderIdRequest(riderId);
 
     return status ? success(res, message, data) : badRequest(res, message, data);
 
@@ -50,18 +49,18 @@ const getDetailsByCheckInId = async (req, res) => {
 
     const errors = validationResult(req);
     if (!(errors.isEmpty())) {
-        return res.status(200).json({
-            success: false,
-            msg: 'Errors',
-            errors: errors.array()
-        })
+      return res.status(200).json({
+        success: false,
+        msg: 'Errors',
+        errors: errors.array()
+      })
     }
 
     const { checkInId } = req.params;
 
-    const  { status, message, data } = await getByCheckInIdRequest(checkInId);
+    const { status, message, data } = await getByCheckInIdRequest(checkInId);
 
-     return status ? success(res, message, data) : badRequest(res, message, data);
+    return status ? success(res, message, data) : badRequest(res, message, data);
 
   } catch (error) {
     console.error(`Error while getting the data of check-ins: ${error}`);
@@ -72,20 +71,20 @@ const getDetailsByCheckInId = async (req, res) => {
 // Add check-in controller function
 const addCheckIn = async (req, res) => {
   try {
-      
+
     const errors = validationResult(req);
     if (!(errors.isEmpty())) {
-        return res.status(200).json({
-            success: false,
-            msg: 'Errors',
-            errors: errors.array()
-        })
+      return res.status(200).json({
+        success: false,
+        msg: 'Errors',
+        errors: errors.array()
+      })
     }
 
     const { riderId, checkInKiloMeters } = req.body;
     const inLocalFilePath = req.file?.path;
 
-    const  { status, message, data } = await addCheckInRequest(riderId, checkInKiloMeters, inLocalFilePath);
+    const { status, message, data } = await addCheckInRequest(riderId, checkInKiloMeters, inLocalFilePath);
 
     return status ? success(res, message, data) : badRequest(res, message, data);
   } catch (error) {
@@ -100,19 +99,17 @@ const addCheckOut = async (req, res) => {
 
     const errors = validationResult(req);
     if (!(errors.isEmpty())) {
-        return res.status(200).json({
-            success: false,
-            msg: 'Errors',
-            errors: errors.array()
-        })
+      return res.status(200).json({
+        success: false,
+        msg: 'Errors',
+        errors: errors.array()
+      })
     }
 
     const { riderId, checkInOutId, checkOutKiloMeters } = req.body;
     const outLocalFilePath = req.file?.path;
 
-   
-
-    const { status, message, data }  = await addCheckOutRequest(riderId, checkInOutId, checkOutKiloMeters, outLocalFilePath);
+    const { status, message, data } = await addCheckOutRequest(riderId, checkInOutId, checkOutKiloMeters, outLocalFilePath);
     return status ? success(res, message, data) : badRequest(res, message, data);
   } catch (error) {
     console.error("Error creating check-out document:", error);
@@ -126,13 +123,13 @@ const deleteData = async (req, res) => {
 
     const errors = validationResult(req);
     if (!(errors.isEmpty())) {
-        return res.status(200).json({
-            success: false,
-            msg: 'Errors',
-            errors: errors.array()
-        })
+      return res.status(200).json({
+        success: false,
+        msg: 'Errors',
+        errors: errors.array()
+      })
     }
-        
+
     const { riderId, checkInId } = req.body;
 
     const { status, message, data } = await deleteDataRequest(riderId, checkInId);

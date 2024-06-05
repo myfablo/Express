@@ -24,20 +24,6 @@ const isSameDayCheckOut = (existingData, currentDateString) => {
   return formattedExistingCheckOutDate === currentDateString;
 };
 
-//validation during checkOut for Kilometers
-const validateCheckOut = (existingData, checkOutKiloMeters) => {
-  const checkInKiloMeters = existingData.checkIn.checkInKiloMeters;
-  if (isNaN(checkInKiloMeters) || isNaN(checkOutKiloMeters)) {
-    return { isValid: false, message: "Invalid values for check-in and check-out kilometers." };
-  }
-  if (checkInKiloMeters > checkOutKiloMeters) {
-    return { isValid: false, message: "Please enter check-out kilometers greater than check-in kilometers." };
-  }
-  if (checkInKiloMeters === checkOutKiloMeters) {
-    return { isValid: false, message: "You have traveled zero distance today." };
-  }
-  return { isValid: true };
-};
 
 
 //getting the time difference between checkOut and checkIn of a rider
@@ -60,18 +46,11 @@ const getTimeDifference = async (checkInTime, checkOutTime) => {
     const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
 
     const data = `${hours} hours, ${minutes} minutes, ${seconds} seconds`;
-    return {
-      status: true,
-      message: "Time difference calculated successfully!",
-      data: data,
-    };
+    return data;
+    
   } catch (error) {
     console.error(`Error while getting the time differences ${error}`);
-    return {
-      status: false,
-      message: error.message,
-      error,
-    };
+    throw new Error("Error while getting the time differences!!");
   }
 }
 
@@ -163,6 +142,5 @@ module.exports = {
   uploadImage,
   isSameDayCheckIn,
   isSameDayCheckOut,
-  validateCheckOut,
   getTimeDifference,
 }
