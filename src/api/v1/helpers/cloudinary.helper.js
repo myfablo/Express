@@ -10,7 +10,7 @@ cloudinary.config({
 // Utility function to handle file deletion
 const deleteLocalFile = async (filePath) => {
   try {
-    await fs.unlink(filePath, (err) => {
+    await fs.unlinkSync(filePath, (err) => {
       if (err) {
         console.error('Failed to delete local file:', err);
         return;
@@ -35,8 +35,6 @@ const uploadOnCloudinary = async (localFilePath) => {
     if (!response) {
       throw new Error("There is a problem while uploading the file!");
     }
-
-    console.log(`File has been uploaded successfully to: ${response.url}`);
 
     await deleteLocalFile(localFilePath);
     return response;

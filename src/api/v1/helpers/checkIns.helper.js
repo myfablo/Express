@@ -5,7 +5,6 @@ const {
   uploadImage,
   isSameDayCheckIn,
   isSameDayCheckOut,
-  validateCheckOut,
   getTimeDifference
 } = require("./utils.helper.js");
 

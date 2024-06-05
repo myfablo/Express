@@ -11,6 +11,7 @@ const loadKey = async (role, type) => {
   return await fs.readFile(filePath, 'utf-8');
 };
 
+//load keys for specific role
 const loadKeys = async () => {
   const roles = ['rider', 'admin', 'user'];
   const keys = {};
@@ -21,10 +22,12 @@ const loadKeys = async () => {
     };
   }
   return keys;
+  console.log(keys)
 };
 
 // Load all keys at once
 const keysPromise = loadKeys();
+console.log(keysPromise)
 
 // JWT options
 const signOptions = { expiresIn: "30d", algorithm: "RS256" };

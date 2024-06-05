@@ -126,10 +126,18 @@ const generateKeys = async (role) => {
 };
 
 // Generate keys for all roles
-const generateAllKeys = async () => {
-  await generateKeys('rider');
-  await generateKeys('admin');
-  await generateKeys('user');
+const generateAllKeys = async (role) => {
+  if(role == 'rider'){
+    await generateKeys(role);
+  }
+  else if(role == 'admin'){
+    await generateKeys('admin');
+  }
+  else{
+    await generateKeys('user');
+  }
+  
+ 
 };
 
 
