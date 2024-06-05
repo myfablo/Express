@@ -3,6 +3,8 @@ const jwt = require("jsonwebtoken");
 const path = require("path");
 const { forbidden, unauthorized } = require("../helpers/response.helper.js");
 
+
+
 // Load keys asynchronously
 const loadKey = async (role, type) => {
   const filePath = path.join("key", role, `${role}_${type}_key.pem`);
@@ -79,24 +81,7 @@ const getRoleFromCode = (code) => {
   return roles[code];
 };
 
-// // Middleware for authentication
-// const authenticate = async (req, res, next) => {
-//   const authHeader = req.headers.authorization;
-//   if (!authHeader) return forbidden(res, "Token not found");
 
-//   const token = authHeader.split(" ")[1];
-//   const decode = parseJwt(authHeader);
-//   if (!decode) return unauthorized(res, "Invalid token");
-
-//   const keys = await keysPromise;
-
-//   try {
-//     verifyToken(token, keys[getRoleFromCode(decode.role)].publicKey, decode, res);
-//     next();
-//   } catch (error) {
-//     unauthorized(res, error.message);
-//   }
-// };
 
 // Role-specific authentication
 const authenticateRole = (role) => async (req, res, next) => {

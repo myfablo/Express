@@ -13,43 +13,31 @@ const {
 } = require("../helpers/checkIns.helper.js");
 
 const authenticateRider = require("../middlewares/auth.middleware.js");
+const { validationResult} =require('express-validator')
 
-// Utility function to validate presence of required fields
-const validateFields = (fields, res) => {
-  for (const [field, value] of Object.entries(fields)) {
-    if (!value) {
-      badRequest(res, `${field} is required!`);
-      return false;
-    }
-    if (field.includes('KiloMeters') && isNaN(value)) {
-      badRequest(res, `KiloMeters must be a number!`);
-      return false;
-    }
-  }
-  return true;
-};
 
-// Utility function to handle response
-const handleResponse = (res, response) => {
-  const { status, message, data } = response;
-  if (status) {
-    return success(res, message, data);
-  } else {
-    return badRequest(res, message, data);
-  }
-};
 
 // Get check-ins data by riderId
 const getDetailsByRiderId = async (req, res) => {
   try {
-    const { riderId } = req.params;
 
-    if (!riderId) {
-      return badRequest(res, "Rider ID is required!");
+    const errors = validationResult(req);
+
+    if (!(errors.isEmpty())) {
+        return res.status(400).json({
+            success: false,
+            msg: 'Errors',
+            errors: errors.array()
+        })
     }
 
-    const response = await getByRiderIdRequest(riderId);
-    return handleResponse(res, response);
+
+    const { riderId } = req.params;
+
+    const  { status, message, data } = await getByRiderIdRequest(riderId);
+
+    return status ? success(res, message, data) : badRequest(res, message, data);
+
   } catch (error) {
     console.error(`Error while getting the data of rider: ${error}`);
     return unknownError(res, error);
@@ -59,14 +47,22 @@ const getDetailsByRiderId = async (req, res) => {
 // Get check-ins data by checkInId
 const getDetailsByCheckInId = async (req, res) => {
   try {
-    const { checkInId } = req.params;
 
-    if (!checkInId) {
-      return badRequest(res, "Check-in ID is required!");
+    const errors = validationResult(req);
+    if (!(errors.isEmpty())) {
+        return res.status(200).json({
+            success: false,
+            msg: 'Errors',
+            errors: errors.array()
+        })
     }
 
-    const response = await getByCheckInIdRequest(checkInId);
-    return handleResponse(res, response);
+    const { checkInId } = req.params;
+
+    const  { status, message, data } = await getByCheckInIdRequest(checkInId);
+
+     return status ? success(res, message, data) : badRequest(res, message, data);
+
   } catch (error) {
     console.error(`Error while getting the data of check-ins: ${error}`);
     return unknownError(res, error);
@@ -76,15 +72,22 @@ const getDetailsByCheckInId = async (req, res) => {
 // Add check-in controller function
 const addCheckIn = async (req, res) => {
   try {
+      
+    const errors = validationResult(req);
+    if (!(errors.isEmpty())) {
+        return res.status(200).json({
+            success: false,
+            msg: 'Errors',
+            errors: errors.array()
+        })
+    }
+
     const { riderId, checkInKiloMeters } = req.body;
     const inLocalFilePath = req.file?.path;
 
-    const fields = { riderId, checkInKiloMeters, 'Check-in image': inLocalFilePath };
+    const  { status, message, data } = await addCheckInRequest(riderId, checkInKiloMeters, inLocalFilePath);
 
-    if (!validateFields(fields, res)) return;
-
-    const response = await addCheckInRequest(riderId, checkInKiloMeters, inLocalFilePath);
-    return handleResponse(res, response);
+    return status ? success(res, message, data) : badRequest(res, message, data);
   } catch (error) {
     console.error("Error creating check-in document:", error);
     return unknownError(res, error);
@@ -94,15 +97,23 @@ const addCheckIn = async (req, res) => {
 // Add check-out controller function
 const addCheckOut = async (req, res) => {
   try {
+
+    const errors = validationResult(req);
+    if (!(errors.isEmpty())) {
+        return res.status(200).json({
+            success: false,
+            msg: 'Errors',
+            errors: errors.array()
+        })
+    }
+
     const { riderId, checkInOutId, checkOutKiloMeters } = req.body;
     const outLocalFilePath = req.file?.path;
 
-    const fields = { riderId, checkInOutId, checkOutKiloMeters, 'Check-out image': outLocalFilePath };
+   
 
-    if (!validateFields(fields, res)) return;
-
-    const response = await addCheckOutRequest(riderId, checkInOutId, checkOutKiloMeters, outLocalFilePath);
-    return handleResponse(res, response);
+    const { status, message, data }  = await addCheckOutRequest(riderId, checkInOutId, checkOutKiloMeters, outLocalFilePath);
+    return status ? success(res, message, data) : badRequest(res, message, data);
   } catch (error) {
     console.error("Error creating check-out document:", error);
     return unknownError(res, error);
@@ -112,21 +123,21 @@ const addCheckOut = async (req, res) => {
 // Function to delete the check-Ins
 const deleteData = async (req, res) => {
   try {
-    const { riderId, checkInId } = req.body;
 
-    if (!riderId || !checkInId) {
-      const missingField = !riderId ? 'riderId' : 'checkInId';
-      return badRequest(res, `${missingField} is required!`);
+    const errors = validationResult(req);
+    if (!(errors.isEmpty())) {
+        return res.status(200).json({
+            success: false,
+            msg: 'Errors',
+            errors: errors.array()
+        })
     }
+        
+    const { riderId, checkInId } = req.body;
 
     const { status, message, data } = await deleteDataRequest(riderId, checkInId);
 
-    // Handle response based on status
-    if (status) {
-      return success(res, message, data);
-    } else {
-      return badRequest(res, message, data);
-    }
+    return status ? success(res, message, data) : badRequest(res, message, data);
   } catch (error) {
     console.error("Error while deleting check-out document:", error);
     return unknownError(res, error);
