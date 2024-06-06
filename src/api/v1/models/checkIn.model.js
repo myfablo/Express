@@ -49,5 +49,5 @@ const checkInSchema = new Schema(
   { timestamps: true }
 );
 
-const checkInsModel = mongoose.model("checkins", checkInSchema); // Corrected model name
+const checkInsModel = mongoose.model("checkins", checkInSchema); 
 module.exports = { checkInsModel };

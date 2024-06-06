@@ -1,23 +1,10 @@
-const {
-  badRequest,
-  unknownError,
-  success,
-} = require("../helpers/response.helper.js");
-
-const {
-  addCheckInRequest,
-  addCheckOutRequest,
-  getByRiderIdRequest,
-  getByCheckInIdRequest,
-  deleteDataRequest
-} = require("../helpers/checkIns.helper.js");
-
-const authenticateRider = require("../middlewares/auth.middleware.js");
+const { badRequest, unknownError, success} = require("../helpers/response.helper.js");
+const {addCheckInRequest, addCheckOutRequest, getByRiderIdRequest, getByCheckInIdRequest, deleteDataRequest} = require("../helpers/checkIns.helper.js");
 const { validationResult } = require('express-validator')
 
 
 
-// Get check-ins data by riderId
+//.....................................Get check-ins data by riderId.................................................................//
 const getDetailsByRiderId = async (req, res) => {
   try {
 
@@ -43,7 +30,7 @@ const getDetailsByRiderId = async (req, res) => {
   }
 };
 
-// Get check-ins data by checkInId
+//......................................Get check-ins data by checkInId.............................................................//
 const getDetailsByCheckInId = async (req, res) => {
   try {
 
@@ -68,7 +55,7 @@ const getDetailsByCheckInId = async (req, res) => {
   }
 };
 
-// Add check-in controller function
+//..................................Add check-in controller function................................................................//
 const addCheckIn = async (req, res) => {
   try {
 
@@ -93,7 +80,7 @@ const addCheckIn = async (req, res) => {
   }
 };
 
-// Add check-out controller function
+//.......................................Add check-out controller function..........................................................//
 const addCheckOut = async (req, res) => {
   try {
 
@@ -117,7 +104,7 @@ const addCheckOut = async (req, res) => {
   }
 };
 
-// Function to delete the check-Ins
+//.....................................Function to delete the check-Ins.............................................................//
 const deleteData = async (req, res) => {
   try {
 

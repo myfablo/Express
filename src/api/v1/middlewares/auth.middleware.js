@@ -1,16 +1,15 @@
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
-//const path = require("path");
 const { forbidden, unauthorized } = require("../helpers/response.helper.js");
 
 
 
-//...........................PRIVATE KEYS...............................................
+//...........................PRIVATE KEYS................................................................................//
 const userPrivateKEY = fs.readFileSync("./key/user/user_private_key.pem", "utf8");
 const riderPrivateKEY = fs.readFileSync("./key/rider/rider_private_key.pem", "utf8");
 const adminPrivateKEY = fs.readFileSync("./key/admin/admin_private_key.pem", "utf8")
 
-//....................PUBLIC KEYS......................................................
+//....................PUBLIC KEYS.......................................................................................//
 const riderPublicKEY = fs.readFileSync("./key/rider/rider_public_key.pem", "utf8");
 const userPublicKEY = fs.readFileSync("./key/user/user_public_key.pem", "utf8");
 const adminPublicKEY = fs.readFileSync("./key/admin/admin_public_key.pem", "utf8")
@@ -20,7 +19,7 @@ const adminPublicKEY = fs.readFileSync("./key/admin/admin_public_key.pem", "utf8
 const signOptions = { expiresIn: "30d", algorithm: "RS256" };
 const verifyOptions = { algorithms: ["RS256"] };
 
-//............................user-filter................................................................................
+//...........................................user-filter...............................................................//
 const createAuthToken = (userType, userData) => {
   switch (userType) {
     case "mrWhiteHatHacker":
@@ -32,7 +31,7 @@ const createAuthToken = (userType, userData) => {
   }
 }
 
-//.......................................Generate tokens............................................................
+//.........................................Generate tokens............................................................//
 const generateRiderToken = (user) => {
   const data = {
     userId: user.riderId,
@@ -57,7 +56,7 @@ const generateAdminToken = (user) => {
   return jwt.sign(data, adminPrivateKEY, signOptions);
 };
 
-//....................................Date difference calculation.................................................
+//.....................................Date difference calculation...................................................//
 const dateDifference = (expireDate) => {
   const tokenDate = new Date(expireDate * 1000);
   const todayDate = new Date();
@@ -65,7 +64,7 @@ const dateDifference = (expireDate) => {
   return difference / (1000 * 60 * 60 * 24);
 };
 
-//.................................................Parse JWT.........................................
+//...........................................Parse JWT..............................................................//
 const parseJwt = (data) => {
   try {
     const token = data.slice(7);
@@ -76,7 +75,7 @@ const parseJwt = (data) => {
   }
 };
 
-//.............................................Verify token and refresh if needed........................................................
+//....................................Verify token and refresh if needed...........................................//
 function verifyToken(token, publicKey, verifyOptions, decode, res) {
   try {
     jwt.verify(token, publicKey, verifyOptions);
@@ -96,8 +95,8 @@ function verifyToken(token, publicKey, verifyOptions, decode, res) {
 
 
 
-//..............................Role-specific authentication..................................................................
-function authenticateRider(req, res, next) {
+//....................................Role-specific authentication................................................//
+function authenticateUser(req, res, next) {
   let authHeader = req.headers.authorization;
   if (authHeader) {
     try {
@@ -105,14 +104,12 @@ function authenticateRider(req, res, next) {
       const token = authHeader.split(" ")[1];
       if (decode.role == 0) {
         verifyToken(token, adminPublicKEY, verifyOptions, decode, res)
-
-        next();
-      } else if (decode.role == 1) {
-        verifyToken(token, userPublicKEY, verifyOptions, decode, res)
-
+         next();
+      } else if (decode.role == 2) {
+        verifyToken(token, riderPublicKEY, verifyOptions, decode, res)
         next();
       }  else {
-        verifyToken(token, riderPublicKEY, verifyOptions, decode, res)
+       verifyToken(token, userPublicKEY, verifyOptions, decode, res)
         next();
       }
     } catch (error) {
@@ -123,7 +120,7 @@ function authenticateRider(req, res, next) {
   }
 }
 
-function authenticateUser(req, res, next) {
+function authenticateRider(req, res, next) {
   let authHeader = req.headers.authorization;
   if (authHeader) {
     try {
@@ -133,7 +130,7 @@ function authenticateUser(req, res, next) {
         verifyToken(token, adminPublicKEY, verifyOptions, decode, res)
         next();
       }  else {
-        verifyToken(token, userPublicKEY, verifyOptions, decode, res)
+        verifyToken(token, riderPublicKEY, verifyOptions, decode, res)
         next();
       }
     } catch (error) {
@@ -161,7 +158,7 @@ function authenticateAdmin(req, res, next) {
   }
 }
 
-//............................generating token based upon role......................................................
+//...................................generating token based upon role............................................//
 function generateTokenFromRole(role) {
   switch (role) {
     case 0:
