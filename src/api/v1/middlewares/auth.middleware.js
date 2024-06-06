@@ -1,50 +1,63 @@
-const fs = require("fs").promises;
+const fs = require("fs");
 const jwt = require("jsonwebtoken");
-const path = require("path");
+//const path = require("path");
 const { forbidden, unauthorized } = require("../helpers/response.helper.js");
 
 
 
-// Load keys asynchronously
-const loadKey = async (role, type) => {
-  const filePath = path.join("key", role, `${role}_${type}_key.pem`);
-  return await fs.readFile(filePath, 'utf-8');
-};
+//...........................PRIVATE KEYS...............................................
+const userPrivateKEY = fs.readFileSync("./key/user/user_private_key.pem", "utf8");
+const riderPrivateKEY = fs.readFileSync("./key/rider/rider_private_key.pem", "utf8");
+const adminPrivateKEY = fs.readFileSync("./key/admin/admin_private_key.pem", "utf8")
 
-//load keys for specific role
-const loadKeys = async () => {
-  const roles = ['rider', 'admin', 'user'];
-  const keys = {};
-  for (const role of roles) {
-    keys[role] = {
-      privateKey: await loadKey(role, 'private'),
-      publicKey: await loadKey(role, 'public')
-    };
-  }
-  return keys;
-  console.log(keys)
-};
+//....................PUBLIC KEYS......................................................
+const riderPublicKEY = fs.readFileSync("./key/rider/rider_public_key.pem", "utf8");
+const userPublicKEY = fs.readFileSync("./key/user/user_public_key.pem", "utf8");
+const adminPublicKEY = fs.readFileSync("./key/admin/admin_public_key.pem", "utf8")
 
-// Load all keys at once
-const keysPromise = loadKeys();
-console.log(keysPromise)
 
 // JWT options
 const signOptions = { expiresIn: "30d", algorithm: "RS256" };
 const verifyOptions = { algorithms: ["RS256"] };
 
-// Generate tokens
-const generateToken = (user, role) => {
-  const data = { [`${role}Id`]: user[`${role}Id`], role: getRoleCode(role) };
-  return jwt.sign(data, keys[role].privateKey, signOptions);
+//............................user-filter................................................................................
+const createAuthToken = (userType, userData) => {
+  switch (userType) {
+    case "mrWhiteHatHacker":
+      return generateAdminToken(userData)
+    case "rider":
+      return generateRiderToken(userData)
+    default:
+      return generateUserToken(userData)
+  }
+}
+
+//.......................................Generate tokens............................................................
+const generateRiderToken = (user) => {
+  const data = {
+    userId: user.riderId,
+    role: 2
+  };
+  return jwt.sign(data, riderPrivateKEY, signOptions);
 };
 
-const getRoleCode = (role) => {
-  const roleCodes = { admin: 0, rider: 1, user: 2 };
-  return roleCodes[role];
+const generateUserToken = (user) => {
+  const data = {
+    userId: user.userId,
+    role: 1,
+  };
+  return jwt.sign(data, userPrivateKEY, signOptions);
 };
 
-// Date difference calculation
+const generateAdminToken = (user) => {
+  const data = {
+    userId: user.userId,
+    role: 0
+  };
+  return jwt.sign(data, adminPrivateKEY, signOptions);
+};
+
+//....................................Date difference calculation.................................................
 const dateDifference = (expireDate) => {
   const tokenDate = new Date(expireDate * 1000);
   const todayDate = new Date();
@@ -52,7 +65,7 @@ const dateDifference = (expireDate) => {
   return difference / (1000 * 60 * 60 * 24);
 };
 
-// Parse JWT
+//.................................................Parse JWT.........................................
 const parseJwt = (data) => {
   try {
     const token = data.slice(7);
@@ -63,56 +76,127 @@ const parseJwt = (data) => {
   }
 };
 
-// Verify token and refresh if needed
-const verifyToken = (token, publicKey, decode, res) => {
+//.............................................Verify token and refresh if needed........................................................
+function verifyToken(token, publicKey, verifyOptions, decode, res) {
   try {
     jwt.verify(token, publicKey, verifyOptions);
-    const shouldChange = dateDifference(decode.exp) <= 2;
-    if (shouldChange) {
-      token = generateToken(decode, getRoleFromCode(decode.role));
+    let shouldChange = false
+    const dateDiff = dateDifference(decode.exp)
+    if (dateDiff <= 2) {
+      token = generateTokenFromRole(decode.role, decode)
+      shouldChange = true
     }
-    res.tokenInfo = { token, shouldChange };
+    res.tokenInfo = { token, shouldChange }
+    return
   } catch (error) {
-    console.error(error);
-    throw new Error("Invalid token");
+    console.log(error);
+    throw new Error(error.message)
   }
-};
-
-// Get role from code
-const getRoleFromCode = (code) => {
-  const roles = ["admin", "rider", "user"];
-  return roles[code];
-};
+}
 
 
 
-// Role-specific authentication
-const authenticateRole = (role) => async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return forbidden(res, "Token not found");
+//..............................Role-specific authentication..................................................................
+function authenticateRider(req, res, next) {
+  let authHeader = req.headers.authorization;
+  if (authHeader) {
+    try {
+      const decode = parseJwt(authHeader);
+      const token = authHeader.split(" ")[1];
+      if (decode.role == 0) {
+        verifyToken(token, adminPublicKEY, verifyOptions, decode, res)
 
-  const token = authHeader.split(" ")[1];
-  const decode = parseJwt(authHeader);
-  if (!decode || decode.role !== getRoleCode(role)) return unauthorized(res, "Invalid token");
+        next();
+      } else if (decode.role == 1) {
+        verifyToken(token, userPublicKEY, verifyOptions, decode, res)
 
-  const keys = await keysPromise;
-
-  try {
-    verifyToken(token, keys[role].publicKey, decode, res);
-    next();
-  } catch (error) {
-    unauthorized(res, error.message);
+        next();
+      }  else {
+        verifyToken(token, riderPublicKEY, verifyOptions, decode, res)
+        next();
+      }
+    } catch (error) {
+      unauthorized(res, "invalid token");
+    }
+  } else {
+    forbidden(res, "token not found");
   }
-};
+}
+
+function authenticateUser(req, res, next) {
+  let authHeader = req.headers.authorization;
+  if (authHeader) {
+    try {
+      const decode = parseJwt(authHeader)
+      const token = authHeader.split(" ")[1];
+      if (decode.role == 0) {
+        verifyToken(token, adminPublicKEY, verifyOptions, decode, res)
+        next();
+      }  else {
+        verifyToken(token, userPublicKEY, verifyOptions, decode, res)
+        next();
+      }
+    } catch (error) {
+      unauthorized(res, "invalid token");
+    }
+  } else {
+    forbidden(res, "token not found");;
+  }
+}
+
+function authenticateAdmin(req, res, next) {
+  let authHeader = req.headers.authorization;
+  const decode = parseJwt(authHeader)
+  if (authHeader) {
+    const token = authHeader.split(" ")[1];
+    try {
+      verifyToken(token, adminPublicKEY, verifyOptions, decode, res)
+      next();
+    } catch (err) {
+      console.log(err);
+      unauthorized(res, "invalid token");
+    }
+  } else {
+    forbidden(res, "token not found");
+  }
+}
+
+//............................generating token based upon role......................................................
+function generateTokenFromRole(role) {
+  switch (role) {
+    case 0:
+      return generateAdminToken(userData)
+    case 1:
+      return generateUserToken(userData)
+    case 2:
+      return generateRiderToken(userData)
+    default:
+      return
+  }
+
+}
 
 // Export functions
 module.exports = {
-  authenticateUser: authenticateRole('user'),
-  authenticateRider: authenticateRole('rider'),
-  authenticateAdmin: authenticateRole('admin'),
-  generateRiderToken: (user) => generateToken(user, 'rider'),
-  generateUserToken: (user) => generateToken(user, 'user'),
-  generateAdminToken: (user) => generateToken(user, 'admin'),
+  authenticateUser,
+  authenticateRider,
+  authenticateAdmin,
+  createAuthToken,
+  generateRiderToken,
+  generateUserToken,
+  generateAdminToken,
   parseJwt,
-  generateTokenFromRole: (role, userData) => generateToken(userData, getRoleFromCode(role))
 };
+
+
+
+
+
+
+
+
+
+
+
+
+

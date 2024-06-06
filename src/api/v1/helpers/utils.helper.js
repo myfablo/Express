@@ -109,8 +109,8 @@ const saveKeys = async (role, publicKey, privateKey) => {
   await fs.mkdir(keyDir, { recursive: true });
 
   // Write the keys
-  await fs.writeFile(path.join(keyDir, `${role}_public_key.pem`), publicKey);
-  await fs.writeFile(path.join(keyDir, `${role}_private_key.pem`), privateKey);
+  await fs.writeFileSync(path.join(keyDir, `${role}_public_key.pem`), publicKey);
+  await fs.writeFileSync(path.join(keyDir, `${role}_private_key.pem`), privateKey);
 };
 
 // Generate keys for a role
