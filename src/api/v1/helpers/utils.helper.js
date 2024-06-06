@@ -127,14 +127,14 @@ const generateKeys = async (role) => {
 
 // Generate keys for all roles
 const generateAllKeys = async (role) => {
-  if(role == 'rider'){
-    await generateKeys(role);
+  if(role == 2){
+    await generateKeys(rider);
   }
-  else if(role == 'admin'){
-    await generateKeys('admin');
+  else if(role == 0){
+    await generateKeys(admin);
   }
   else{
-    await generateKeys('user');
+    await generateKeys(user);
   }
   
  
