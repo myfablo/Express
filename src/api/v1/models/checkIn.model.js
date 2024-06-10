@@ -1,10 +1,12 @@
 const mongoose = require("mongoose");
-const Schema = require("mongoose").Schema;
+const { Schema } = mongoose;
+const basicDetailsModel = require('./basicDetails.model.js')
 
 const checkInSchema = new Schema(
   {
     riderId: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref:'basicDetailsModel',
       required: true,
     },
     checkIn: {
@@ -49,5 +51,5 @@ const checkInSchema = new Schema(
   { timestamps: true }
 );
 
-const checkInsModel = mongoose.model("checkins", checkInSchema); 
+const checkInsModel = mongoose.model("checkins", checkInSchema);
 module.exports = { checkInsModel };

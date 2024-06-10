@@ -3,7 +3,7 @@ const router = express.Router();
 const {addCheckIn, addCheckOut,  getDetailsByRiderId,  getDetailsByCheckInId, deleteData} = require("../controller/checkIns.controller.js");
 const upload = require("../middlewares/multer.middleware.js"); 
 const { authenticateRider } = require("../middlewares/auth.middleware.js");
-const  { getByRiderIdValidator, getByCheckInIdValidator, addCheckInValidator, addCheckOutValidator, deleteDataValidator } = require('../helpers/validator.helper.js')
+const  { getByRiderIdValidator, getByCheckInIdValidator, addCheckInValidator, addCheckOutValidator, deleteDataValidator } = require('../validator/checkIns.validator.js')
 
 
 
