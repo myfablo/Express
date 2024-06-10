@@ -34,9 +34,20 @@ const registerRider = async (req,res) => {
 const loginRider = async (req,res) => {
 try {
 
-    
+    const errors = validationResult(req);
+
+    if (!(errors.isEmpty())) {
+      return res.status(400).json({
+        success: false,
+        msg: 'Errors',
+        errors: errors.array()
+      })
+    }
+
+    const { email , phoneNumber, password} = req.body
 } catch (error) {
-    
+    console.error(`Error while getting the data of rider: ${error}`);
+    return unknownError(res, error);
 }
 }
 module.exports = { registerRider, loginRider, }

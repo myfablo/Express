@@ -11,21 +11,21 @@ const basicDetailsSchema = new Schema({
         required: true
     },
     DOB: {
-        type: Date,
+        type: String,
         required: true
     },
     password: {
         type: String,
         required: true,
     },
-    Gender: {
+    gender: {
         type: String,
         required: true,
     },
     operationCity: {
         type: String,
         required: true,
-        default: Indore
+        default:"Indore"
     },
     currentAddress: {
         type: String,

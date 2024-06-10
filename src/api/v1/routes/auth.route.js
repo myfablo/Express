@@ -6,4 +6,7 @@ const { registerRiderValidator } = require("../validator/auth.validator.js");
 
 
 
-router.post('/register',registerRiderValidator,upload,registerRider)
+router.post('/register', registerRiderValidator, registerRider)
+
+
+module.exports = router

@@ -32,7 +32,6 @@ const { encryption } = require("../middlewares/auth.middleware.js");
         phoneNumber,
      }
      let rider = await basicDetailsModel.create(riderData);
-     console.log(rider)
 
      if (!rider) {
         return { status: false, message: "Failed to save the rider data!" };
