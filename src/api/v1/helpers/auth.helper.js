@@ -53,5 +53,23 @@ const { encryption } = require("../middlewares/auth.middleware.js");
     }
   }
 
+  const checkAuthByPhone = async (phone) => {
+    try {
+        const authData = await basicDetailsModel.exists({ phone });
+        return authData ? authData : false;
+    } catch (error) {
+        return false
+    }
+}
 
-  module.exports = { registerRiderRequest }
+
+const checkAuthByEmail = async (email) => {
+    try {
+        const authData = await basicDetailsModel.exists({ email });
+        return authData ? authData : false;
+    } catch (error) {
+        return false
+    }
+}
+
+  module.exports = { registerRiderRequest, checkAuthByPhone, checkAuthByEmail }

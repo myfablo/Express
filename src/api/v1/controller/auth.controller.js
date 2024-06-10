@@ -45,6 +45,12 @@ try {
     }
 
     const { email , phoneNumber, password} = req.body
+
+    if(phoneNumber){
+        
+    }
+
+
 } catch (error) {
     console.error(`Error while getting the data of rider: ${error}`);
     return unknownError(res, error);
