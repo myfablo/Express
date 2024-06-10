@@ -1,6 +1,7 @@
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const { forbidden, unauthorized } = require("../helpers/response.helper.js");
+const bcrypt = require("bcrypt");
 
 
 
@@ -74,6 +75,19 @@ const parseJwt = (data) => {
     return null;
   }
 };
+
+async function encryption(data) {
+  const saltRounds = 10;
+  const salt = await bcrypt.genSalt(saltRounds);
+  const hash = await bcrypt.hash(data, salt);
+  return hash;
+}
+
+async function checkEncryption(data, encryptData) {
+  const check = await bcrypt.compare(data, encryptData);
+  return check;
+}
+
 
 //....................................Verify token and refresh if needed...........................................//
 function verifyToken(token, publicKey, verifyOptions, decode, res) {
@@ -183,6 +197,8 @@ module.exports = {
   generateUserToken,
   generateAdminToken,
   parseJwt,
+  encryption,
+  checkEncryption
 };
 
 

@@ -44,4 +44,4 @@ const vehicleInfoSchema = new Schema({
 
 const vehicleInfoModel = mongoose.model('vehicleInfo', vehicleInfoSchema)
 
-module.exports = { vehicleInfoModel }
+module.exports =  vehicleInfoModel 

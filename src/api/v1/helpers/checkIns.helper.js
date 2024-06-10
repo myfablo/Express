@@ -1,4 +1,4 @@
-const { checkInsModel } = require("../models/checkIn.model.js");
+const  checkInsModel  = require("../models/checkIn.model.js");
 const {
   generateRandomBytes,
   getTimeInIST,

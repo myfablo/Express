@@ -14,6 +14,10 @@ const basicDetailsSchema = new Schema({
         type: Date,
         required: true
     },
+    password: {
+        type: String,
+        required: true,
+    },
     Gender: {
         type: String,
         required: true,
@@ -38,6 +42,14 @@ const basicDetailsSchema = new Schema({
     phoneNumber: {
         type: Number,
         required: true
+    },
+    isLogin:{
+        type:Boolean,
+        default:false
+    },
+    isActive:{
+        type:Boolean,
+        default:false
     }
 
 
@@ -45,4 +57,4 @@ const basicDetailsSchema = new Schema({
 
 const basicDetailsModel = mongoose.model('basicDetails', basicDetailsSchema)
 
-module.exports = { basicDetailsModel }
+module.exports = basicDetailsModel
