@@ -1,10 +1,18 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
+const authModel = require('./auth.model.js')
 
 const basicDetailsSchema = new Schema({
-    riderId: {
+    userId:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:'authModel',
+    required: true,
+    unique:true
+    },
+   riderId: {
         type: String,
         required: true,
+        unique: true
     },
     fullName: {
         type: String,
@@ -39,7 +47,7 @@ const basicDetailsSchema = new Schema({
         type: String,
         required: true
     },
-    phoneNumber: {
+    phone: {
         type: Number,
         required: true
     },

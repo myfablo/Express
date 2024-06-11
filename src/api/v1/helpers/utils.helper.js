@@ -55,24 +55,6 @@ const getTimeDifference = async (checkInTime, checkOutTime) => {
 }
 
 
-// Generate random bytes
-const generateRandomBytes = async (length) => {
-  try {
-    return new Promise((resolve, reject) => {
-      crypto.randomBytes(length, (err, buff) => {
-        if (err) {
-          console.error(err);
-          return reject(err);
-        }
-        resolve(buff.toString("hex"));
-      });
-    });
-  } catch (error) {
-    console.error(error);
-    throw new Error("Error while generating the RandomByte!!");
-  }
-};
-
 // Get time in IST
 const getTimeInIST = () => {
   try {

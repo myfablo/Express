@@ -1,5 +1,5 @@
-const { badRequest, unknownError, success} = require("../helpers/response.helper.js");
-const {addCheckInRequest, addCheckOutRequest, getByRiderIdRequest, getByCheckInIdRequest, deleteDataRequest} = require("../helpers/checkIns.helper.js");
+const { badRequest, unknownError, success } = require("../helpers/response.helper.js");
+const { addCheckInRequest, addCheckOutRequest, getByRiderIdRequest, getByCheckInIdRequest, deleteDataRequest } = require("../helpers/checkIns.helper.js");
 const { validationResult } = require('express-validator')
 
 
@@ -130,10 +130,4 @@ const deleteData = async (req, res) => {
 
 
 
-module.exports = {
-  getDetailsByRiderId,
-  getDetailsByCheckInId,
-  addCheckIn,
-  addCheckOut,
-  deleteData
-};
+module.exports = { getDetailsByRiderId, getDetailsByCheckInId, addCheckIn, addCheckOut, deleteData };
