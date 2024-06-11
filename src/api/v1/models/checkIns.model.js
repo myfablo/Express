@@ -52,4 +52,4 @@ const checkInSchema = new Schema(
 );
 
 const checkInsModel = mongoose.model("checkins", checkInSchema);
-module.exports = checkInsModel 
+module.exports = {checkInsModel} 

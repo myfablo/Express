@@ -6,10 +6,15 @@ const  basicDetailsModel  = require("../models/basicDetails.model.js");
 
 const onboadrRiderRequest = async (fullName, email, DOB, password, Gender, operationCity, currentAddress, permanentAddress, phone) => {
     try {
-        const check = await basicDetailsModel.exists({ userId })
+        const check = await basicDetailsModel.exists({
+            $or: [ { email: email }, { phone: phone }]
+          });
+          
         if (check) {
-            return responseFormater(false, "already onboarded")
+            return { status: false, message:"already onboarded", data: {}}
         }
+
+        
         
     } catch (error) {
         

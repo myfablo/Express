@@ -65,4 +65,4 @@ const basicDetailsSchema = new Schema({
 
 const basicDetailsModel = mongoose.model('basicDetails', basicDetailsSchema)
 
-module.exports = basicDetailsModel
+module.exports = {basicDetailsModel}

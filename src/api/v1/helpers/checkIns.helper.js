@@ -1,6 +1,6 @@
-const  checkInsModel  = require("../models/checkIn.model.js");
+const  checkInsModel  = require("../models/checkIns.model.js");
+const { randomBytes } = require('node:crypto');
 const {
-  generateRandomBytes,
   getTimeInIST,
   uploadImage,
   isSameDayCheckIn,
@@ -11,7 +11,7 @@ const {
 // Add check-in request
 const addCheckInRequest = async (riderId, checkInKiloMeters, inLocalFilePath) => {
   try {
-    const checkInId = await generateRandomBytes(8);
+    const checkInId = randomBytes(8).toString('hex');
     const currentTime = getTimeInIST();
     const currentDateString = currentTime.split(",")[0];
     const checkInImage = await uploadImage(inLocalFilePath);

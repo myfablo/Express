@@ -4,7 +4,7 @@ const basicDetailsModel = require('./basicDetails.model.js')
 
 
 
-const vehicleInfoSchema = new Schema({
+const vehicleDetailsSchema = new Schema({
 
     riderId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -39,9 +39,13 @@ const vehicleInfoSchema = new Schema({
     insuranceCompany: {
         type: String,
         required: true
+    },
+    isDeleted: {
+        type:Boolean,
+        default:false
     }
 }, { timestamps: true })
 
-const vehicleInfoModel = mongoose.model('vehicleInfo', vehicleInfoSchema)
+const vehicleDetailsModel = mongoose.model('vehicleDetails', vehicleDetailsSchema)
 
-module.exports =  vehicleInfoModel 
+module.exports =  { vehicleDetailsModel } 

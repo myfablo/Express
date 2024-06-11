@@ -48,4 +48,4 @@ const documentsSchema = new Schema({
 }, { timestamps: true })
 const documentsModel = mongoose.model('documents', documentsSchema)
 
-module.exports = documentsModel
+module.exports = {documentsModel}

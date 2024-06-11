@@ -43,4 +43,4 @@ const bankDetailsSchema = new Schema({
 
 const bankDetailsModel = mongoose.model('banks',bankDetailsSchema)
 
-module.exports = bankDetailsModel
+module.exports = {bankDetailsModel}
