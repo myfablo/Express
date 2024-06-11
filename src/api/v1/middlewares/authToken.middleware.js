@@ -6,13 +6,13 @@ const bcrypt = require("bcrypt");
 
 
 //...........................PRIVATE KEYS................................................................................//
-const userPrivateKEY = fs.readFileSync("./key/user/user_private_key.pem", "utf8");
+const customerPrivateKEY = fs.readFileSync("./key/customer/customer_private_key.pem", "utf8");
 const riderPrivateKEY = fs.readFileSync("./key/rider/rider_private_key.pem", "utf8");
 const adminPrivateKEY = fs.readFileSync("./key/admin/admin_private_key.pem", "utf8")
 
 //....................PUBLIC KEYS.......................................................................................//
 const riderPublicKEY = fs.readFileSync("./key/rider/rider_public_key.pem", "utf8");
-const userPublicKEY = fs.readFileSync("./key/user/user_public_key.pem", "utf8");
+const customerPublicKEY = fs.readFileSync("./key/customer/customer_public_key.pem", "utf8");
 const adminPublicKEY = fs.readFileSync("./key/admin/admin_public_key.pem", "utf8")
 
 
@@ -48,7 +48,7 @@ const generateUserToken = (user) => {
     customId: user.customId,
     userType: "customer",
   };
-  return jwt.sign(data, userPrivateKEY, signOptions);
+  return jwt.sign(data, customerPrivateKEY, signOptions);
 };
 
 const generateAdminToken = (user) => {
@@ -125,7 +125,7 @@ function authenticateUser(req, res, next) {
         verifyToken(token, riderPublicKEY, verifyOptions, decode, res)
         next();
       }  else {
-       verifyToken(token, userPublicKEY, verifyOptions, decode, res)
+       verifyToken(token, customerPublicKEY, verifyOptions, decode, res)
         next();
       }
     } catch (error) {

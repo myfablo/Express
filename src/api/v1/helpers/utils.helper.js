@@ -127,7 +127,6 @@ const generateAllKeys = async (role) => {
 // Exporting the key generation function
 module.exports = {
   generateAllKeys,
-  generateRandomBytes,
   getTimeInIST,
   uploadImage,
   isSameDayCheckIn,
