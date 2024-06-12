@@ -5,7 +5,7 @@ const { validationResult } = require('express-validator')
 
 
 //.....................................Get check-ins data by riderId.................................................................//
-const getDetailsByRiderId = async (req, res) => {
+const getCheckInsByRiderId = async (req, res) => {
   try {
 
     const errors = validationResult(req);
@@ -31,7 +31,7 @@ const getDetailsByRiderId = async (req, res) => {
 };
 
 //......................................Get check-ins data by checkInId.............................................................//
-const getDetailsByCheckInId = async (req, res) => {
+const getCheckInsByCheckInId = async (req, res) => {
   try {
 
     const errors = validationResult(req);
@@ -105,7 +105,7 @@ const addCheckOut = async (req, res) => {
 };
 
 //.....................................Function to delete the check-Ins.............................................................//
-const deleteData = async (req, res) => {
+const deleteCheckIns = async (req, res) => {
   try {
 
     const errors = validationResult(req);
@@ -130,4 +130,4 @@ const deleteData = async (req, res) => {
 
 
 
-module.exports = { getDetailsByRiderId, getDetailsByCheckInId, addCheckIn, addCheckOut, deleteData };
+module.exports = { getCheckInsByRiderId, getCheckInsByCheckInId, addCheckIn, addCheckOut, deleteCheckIns };

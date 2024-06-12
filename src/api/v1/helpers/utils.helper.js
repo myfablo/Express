@@ -75,7 +75,6 @@ const uploadImage = async (localFilePath) => {
     if (!cloudinaryFilePath) {
       throw new Error("Error uploading the check-in image file to Cloudinary");
     }
-    console.log(cloudinaryFilePath.url);
     return cloudinaryFilePath;
   } catch (error) {
     console.error(error);
