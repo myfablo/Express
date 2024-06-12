@@ -44,6 +44,10 @@ const documentsSchema = new Schema({
     insuranceDocument: {
         type: String,
         required: true
+    },
+    isDeleted:{
+        type:Boolean,
+        default:false
     }
 }, { timestamps: true })
 const documentsModel = mongoose.model('documents', documentsSchema)

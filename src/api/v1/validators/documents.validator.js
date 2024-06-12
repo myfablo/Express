@@ -77,4 +77,9 @@ const validateDocumentsUpload = [
         })
 ];
 
-module.exports = { validateDocumentsUpload };
+const validateGetUpdateDelete = [
+    check('riderId')
+    .notEmpty().withMessage('Rider ID is required!'),
+]
+
+module.exports = { validateDocumentsUpload, validateGetUpdateDelete };

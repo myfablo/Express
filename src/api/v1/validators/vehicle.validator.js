@@ -25,9 +25,9 @@ const validateVehicleDetails = [
         .notEmpty().withMessage('Insurance company is required')
 ];
 
-const validateGettingVehicle = [
+const validateGetUpdateDelete = [
     check('riderId')
-        .notEmpty().withMessage('Rider ID is required')
+    .notEmpty().withMessage('Rider ID is required!'),
 ]
 
-module.exports = { validateVehicleDetails, validateGettingVehicle };
+module.exports = { validateVehicleDetails, validateGetUpdateDelete };

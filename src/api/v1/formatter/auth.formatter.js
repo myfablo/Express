@@ -45,32 +45,23 @@ const customerEditFormatter = (userData) => {
     }
 }
 
-const riderFormatter = (data, userId = false, roamId, partnerId) => {
+const riderFormatter = (data, userId = false, token) => {
     return userId ? {
         userId: userId,
-        partnerId: partnerId,
-        name: data.name,
-        phone: data.phone,
-        roamId,
-        image: data.image,
-        dob: data.dob,
-        vehicleNo: data.vehicleNo,
+        riderId: randomBytes(4).toString('hex'),
+        fullName: data.fullName,
+        phone: token.phone,
+        email: token.email,
+        password: token.password,
+        DOB: data.DOB,
         gender: data.gender,
-        aadhaar: data.aadhaar,
-        pan: data.pan,
-        insurance: data.insurance,
-        drivingLicense: data.drivingLicense,
-        rcCard: data.rcCard,
-        zone: data.zone,
+        currentAddress: data.currentAddress,
+        permanentAddress: data.permanentAddress,
     } : {
-        name: data.name,
-        image: data.image,
-        dob: data.dob,
-        vehicleNo: data.vehicleNo,
+        fullName: data.fullName,
+        DOB: data.DOB,
         gender: data.gender,
-        insurance: data.insurance,
-        rcCard: data.rcCard,
-        zone: data.zone,
+
     }
 }
 

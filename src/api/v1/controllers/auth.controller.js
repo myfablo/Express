@@ -49,6 +49,8 @@ const verifyUserOtp = async (req, res) => {
     const { reqId, otp } = req.body
     const otpCheck = await verifyOtp(reqId, otp);
     return otpCheck ? success(res, "otp verified", otpCheck) : badRequest(res, "otp not verified");
+    
+    const checkOnboarding = await basicDetailsModel.exists({})
   } catch (error) {
     return unknownError(res, error.message)
   }

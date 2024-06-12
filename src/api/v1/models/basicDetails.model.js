@@ -58,6 +58,10 @@ const basicDetailsSchema = new Schema({
     isActive:{
         type:Boolean,
         default:false
+    },
+    isDeleted:{
+        type:Boolean,
+        default:false
     }
 
 

@@ -13,5 +13,16 @@ router.use("/checkIns", checkInRoute);
 const authRoute = require("./routes/auth.route.js")
 router.use("/auth", authRoute)
 
+//.....................................vehicle route.........................................................//
+const vehicleRoute = require("./routes/vehicle.route.js")
+router.use("/vehicle", vehicleRoute)
+
+//.....................................auth route.........................................................//
+const documentsRoute = require("./routes/documents.route.js")
+router.use("/documents", documentsRoute)
+
+//.....................................auth route.........................................................//
+const onboardRoute = require("./routes/onboard.route.js")
+//router.use("/onboard", onboardRoute)
 
 module.exports = router;

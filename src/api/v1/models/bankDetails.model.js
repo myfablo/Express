@@ -37,7 +37,11 @@ const bankDetailsSchema = new Schema({
       },
       isActive:{
         type:Boolean,
-        default:true
+        default:false
+      },
+      isDeleted:{
+        type:Boolean,
+        default:false
       }
 },{timestamps:true})
 
